@@ -13,11 +13,11 @@
 
 Scene::Scene() {
     std::shared_ptr<DiffuseMat> defMat = std::make_shared<DiffuseMat>();
-    defMat->setDiffuseColor(glm::vec3(0.5));
-    std::shared_ptr<MetalMat> metalMat = std::make_shared<MetalMat>(glm::vec3(0.8, 0.8, 0.8));
+    defMat->setDiffuseColor(glm::vec3(0.7, 0.2, 0.2));
+    std::shared_ptr<MetalMat> metalMat = std::make_shared<MetalMat>(glm::vec3(0.8, 0.8, 0.8), 0.15f);
     std::shared_ptr<NormalMat> normalMat = std::make_shared<NormalMat>();
-    auto sphere = std::make_shared<Sphere>(glm::vec3(3, 0, 0), 1, metalMat);
-    auto sphere2 = std::make_shared<Sphere>(glm::vec3(2, 0, -2), 1, metalMat);
+    auto sphere = std::make_shared<Sphere>(glm::vec3(3, 0, 0), 0.5, defMat);
+    auto sphere2 = std::make_shared<Sphere>(glm::vec3(0, 0, 2), 0.5, defMat);
     auto tri1 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(5, -1, 5), glm::vec3(5, -1, -5), defMat);
     auto tri2 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(-5, -1, -5), glm::vec3(5, -1, -5), defMat);
     _sceneObjects.push_back(sphere);
@@ -26,7 +26,7 @@ Scene::Scene() {
     _sceneObjects.push_back(tri2);
 
     objl::Loader loader;
-    loader.LoadFile("models/spot.obj");
+    loader.LoadFile("models/teapot.obj");
     for (auto mesh : loader.LoadedMeshes) {
         int sz = mesh.Indices.size();
         for (int i = 0; i < sz; i += 3) {
@@ -35,7 +35,7 @@ Scene::Scene() {
                 auto& p = mesh.Vertices[mesh.Indices[i + j]].Position;
                 vs.push_back(glm::vec3(p.X, p.Y, p.Z));
             }
-            _sceneObjects.push_back(std::make_shared<Triangle>(vs, normalMat));
+            _sceneObjects.push_back(std::make_shared<Triangle>(vs, metalMat));
         }
     }
     printf("%d\n", _sceneObjects.size());
