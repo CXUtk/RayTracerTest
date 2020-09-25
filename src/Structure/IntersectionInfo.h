@@ -12,11 +12,11 @@ public:
     void setDistance(float distance) { _distance = distance; }
     void setHitPos(glm::vec3 hitpos) { _hitPos = hitpos; }
     void setNormal(glm::vec3 normal) { _normal = normal; }
-    void setInside(bool value) { _inside = value; }
+    void setFrontFace(bool value) { _frontFace = value; }
     void quickSetInfo(const Ray& ray, float t, const Object* obj);
 
 
-    bool isInside() const { return _inside; }
+    bool isFrontFace() const { return _frontFace; }
     float getDistance() const { return _distance; }
     const Object* getHitObject() const { return _hitObject; }
     glm::vec3 getHitPos() const { return _hitPos; }
@@ -26,7 +26,7 @@ public:
 private:
     const Object* _hitObject;
     float _distance;
-    bool _inside;
+    bool _frontFace;
     glm::vec3 _hitPos;
     glm::vec3 _normal;
 

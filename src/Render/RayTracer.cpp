@@ -5,36 +5,52 @@
 #include <thread>
 #include "Structure/Utils.h"
 #include <ctime>
+#include <mutex>
 #include "Structure/SceneObject/Triangle.h"
 #include "Structure/SceneObject/Sphere.h"
 
 RayTracer::RayTracer(int width, int height) :_width(width), _height(height) {
     _scene = std::make_unique<Scene>();
-    _camera = std::make_unique<Camera>(glm::vec3(0, 1.2, 5), glm::half_pi<float>(), 4.0f / 3.0f, 1);
+    // _camera = std::make_unique<Camera>(glm::vec3(100, 200, 650), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::half_pi<float>(), 4.0f / 3.0f, 1);
+    _camera = std::make_unique<Camera>(glm::vec3(-6, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::half_pi<float>() / 2.5f, 4.0f / 3.0f, 1);
 }
 
 RayTracer::~RayTracer() {
 }
-
+std::mutex mutex;
 void RayTracer::run() {
     clock_t startTime, endTime;
     startTime = clock();
 
     FrameBuffer buffer(_width, _height, 3);
-    for (int i = 0; i < _height; i += 10) {
-        std::shared_ptr<std::thread> threads[10];
-        for (int k = 0; k < 10; k++) {
-            threads[k] = std::make_shared<std::thread>([=, &buffer]() {
+    int val = 0;
+#ifdef MULTI
+    constexpr int NUM_THREADS = 10;
+    std::shared_ptr<std::thread> threads[NUM_THREADS];
+    for (int k = 0; k < NUM_THREADS; k++) {
+        threads[k] = std::make_shared<std::thread>([=, &buffer, &val]() {
+            for (int i = k; i < _height; i += NUM_THREADS) {
                 for (int j = 0; j < _width; j++) {
-                    renderPos(glm::ivec2(j, i + k), buffer);
+                    renderPos(glm::ivec2(j, i), buffer);
                 }
-                }
-            );
-        }
-        for (int k = 0; k < 10; k++) threads[k]->join();
-        printf("%.2lf%%\n", i / (float)_height);
+                mutex.lock();
+                val++;
+                printf("%.2lf%%\n", val / (float)_height * 100);
+                mutex.unlock();
+            }
+            });
     }
-    //_scene->showDebugInfo(buffer);
+    for (int k = 0; k < NUM_THREADS; k++) threads[k]->join();
+#else
+    for (int i = 0; i < _height; i++) {
+        for (int j = 0; j < _width; j++) {
+            renderPos(glm::ivec2(j, i), buffer);
+        }
+        val++;
+        printf("%.2lf%%\n", val / (float)_height * 100);
+    }
+#endif
+    _scene->showDebugInfo(buffer);
     //for (float r = 0; r < 6.28f; r += 0.5f) {
     //    Bresenham(glm::ivec2(100, 100), glm::ivec2(100 + cos(r) * 50, 100 + sin(r) * 50), buffer);
     //}
@@ -47,7 +63,7 @@ void RayTracer::run() {
 
 
 glm::vec3 RayTracer::castRay(const Ray& ray, int depth) {
-    if (depth == 7) return glm::vec3(0);
+    if (depth == 5) return glm::vec3(0);
     IntersectionInfo intersectInfo;
     if (_scene->castRay(ray, intersectInfo)) {
         auto hitObj = intersectInfo.getHitObject();
@@ -78,11 +94,11 @@ glm::vec3 RayTracer::castRay(const Ray& ray, int depth) {
         }
     }
     float t = 0.5f * (ray.getDir().y + 1);
-    return glm::vec3(1) * (1 - t) + glm::vec3(0.5, 0.7, 1.0) * t;
+    return  glm::vec3(1) * (1 - t) + glm::vec3(0.5, 0.7, 1.0) * t;
 }
 
 void RayTracer::renderPos(glm::ivec2 pos, FrameBuffer& buffer) {
-    float sampleCount = 64;
+    float sampleCount = 1;
     glm::vec3 totColor(0);
     for (int i = 0; i < sampleCount; i++) {
         glm::vec2 p2(randFloat(), randFloat());

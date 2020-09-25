@@ -1,6 +1,8 @@
 ﻿#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <iostream>
+#include <map>
+#include <string>
 
 #include "Scene.h"
 #include "Structure/SceneObject/Sphere.h"
@@ -9,81 +11,77 @@
 #include "Structure/Materials/DiffuseMat.h"
 #include "Structure/Materials/MetalMat.h"
 #include "Structure/Materials/NormalMat.h"
+#include "Structure/Materials/GlassMat.h"
+#include "Structure/Materials/LightMat.h"
+#include "Structure/SceneObject/TriangleMesh.h"
+
+#include "Structure/AccelStructure/BVH.h"
 #include "OBJ_Loader.hpp"
 
 Scene::Scene() {
     std::shared_ptr<DiffuseMat> defMat = std::make_shared<DiffuseMat>();
-    defMat->setDiffuseColor(glm::vec3(0.7, 0.2, 0.2));
+    defMat->setDiffuseColor(glm::vec3(0.5));
+
+    std::shared_ptr<DiffuseMat> redMat = std::make_shared<DiffuseMat>();
+    std::shared_ptr<GlassMat> glassMat = std::make_shared<GlassMat>();
+    redMat->setDiffuseColor(glm::vec3(0.7, 0.2, 0.2));
     std::shared_ptr<MetalMat> metalMat = std::make_shared<MetalMat>(glm::vec3(0.8, 0.8, 0.8), 0.15f);
-    std::shared_ptr<NormalMat> normalMat = std::make_shared<NormalMat>();
-    auto sphere = std::make_shared<Sphere>(glm::vec3(3, 0, 0), 0.5, defMat);
-    auto sphere2 = std::make_shared<Sphere>(glm::vec3(0, 0, 2), 0.5, defMat);
+    std::shared_ptr<LightMat> lightMat = std::make_shared<LightMat>(glm::vec3(10));
+
+    auto sphere = std::make_shared<Sphere>(glm::vec3(0, 5, 0), 1, lightMat);
+    auto sphere2 = std::make_shared<Sphere>(glm::vec3(0, 0, -3), 1, redMat);
     auto tri1 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(5, -1, 5), glm::vec3(5, -1, -5), defMat);
     auto tri2 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(-5, -1, -5), glm::vec3(5, -1, -5), defMat);
     _sceneObjects.push_back(sphere);
     _sceneObjects.push_back(sphere2);
+    _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(-2, 0, 2), -0.5, glassMat));
+    _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(2, 0, 2), 0.5, metalMat));
+    // _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(0, -0.5, 3), 0.5, glassMat));
+    _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(0, -0.5, 3), 0.5, std::make_shared<DiffuseMat>(glm::vec3(0.5, 1, 0.5))));
     _sceneObjects.push_back(tri1);
     _sceneObjects.push_back(tri2);
 
     objl::Loader loader;
-    loader.LoadFile("models/teapot.obj");
-    for (auto mesh : loader.LoadedMeshes) {
+    loader.LoadFile("models/f-16.obj");
+    std::map<std::string, std::shared_ptr<Material>> matTable;
+    for (auto& mat : loader.LoadedMaterials) {
+        std::shared_ptr<Material> matR = std::make_shared<DiffuseMat>(glm::vec3(mat.Kd.X, mat.Kd.Y, mat.Kd.Z));
+        matTable[mat.name] = matR;
+    }
+
+    glm::mat4 transform;
+    transform = glm::scale(transform, glm::vec3(1.5, 1.5, 1.5));
+    transform = glm::translate(glm::vec3(0, -0.5, 0));
+    std::vector<std::shared_ptr<Triangle>> trimesh;
+    for (auto& mesh : loader.LoadedMeshes) {
         int sz = mesh.Indices.size();
+        std::shared_ptr<Material> mat = defMat;
+
+        if (mesh.MeshMaterial.has_value() && matTable.find(mesh.MeshMaterial->name) != matTable.end()) {
+            mat = matTable[mesh.MeshMaterial->name];
+            if (mesh.MeshMaterial->name == "glass") {
+                mat = glassMat;
+            }
+        }
         for (int i = 0; i < sz; i += 3) {
             std::vector<glm::vec3> vs;
             for (int j = 0; j < 3; j++) {
                 auto& p = mesh.Vertices[mesh.Indices[i + j]].Position;
-                vs.push_back(glm::vec3(p.X, p.Y, p.Z));
+                glm::vec4 x(p.X, p.Y, p.Z, 1);
+                x = transform * x;
+                vs.push_back(x);
             }
-            _sceneObjects.push_back(std::make_shared<Triangle>(vs, metalMat));
+            _sceneObjects.push_back(std::make_shared<Triangle>(vs, mat));
         }
+        //_sceneObjects.push_back(std::make_shared<TriangleMesh>(trimesh));
+        //trimesh.clear();
     }
     printf("%d\n", _sceneObjects.size());
 
-    //auto matLight = std::make_shared<Material>();
-    //matLight->setReflectivity(0.0f);
-    //matLight->setLightColor(glm::vec3(1, 1, 1));
+    _accelTree = std::make_unique<BVHTree>(1048576);
+    _accelTree->build(_sceneObjects);
 
-
-    //auto matLight2 = std::make_shared<Material>();
-    //matLight2->setReflectivity(0.0f);
-    //matLight2->setLightColor(glm::vec3(0.8, 0.8, 0.8));
-
-    //auto matNoLight = std::make_shared<Material>();
-    //matNoLight->setLight(false);
-    //matNoLight->setReflectivity(0.1f);
-    //matNoLight->setDiffuseColor(glm::vec3(1, 1, 1));
-
-    //auto matNoLight2 = std::make_shared<Material>();
-    //matNoLight2->setLight(false);
-    //matNoLight2->setReflectivity(1.f);
-    //matNoLight2->setDiffuseColor(glm::vec3(1, 0, 0));
-    ////_sceneObjects.push_back(std::make_shared<Circle>(glm::vec2(400, 150), 40, matNoLight));
-    //_sceneObjects.push_back(std::make_shared<Circle>(glm::vec2(300, 400), 40, matLight));
-    ////_sceneObjects.push_back(std::make_shared<Circle>(glm::vec2(500, 400), 40, matNoLight));
-    //_sceneObjects.push_back(ShapeFactory::createRectangle(100, 100, glm::vec2(350, 250), matLight2));
-
-    //_sceneObjects.push_back(ShapeFactory::createRectangle(700, 2, glm::vec2(50, 50), matNoLight));
-    //_sceneObjects.push_back(ShapeFactory::createRectangle(700, 2, glm::vec2(50, 550), matNoLight));
-    //_sceneObjects.push_back(ShapeFactory::createRectangle(2, 500, glm::vec2(50, 50), matNoLight));
-    //_sceneObjects.push_back(ShapeFactory::createRectangle(2, 500, glm::vec2(750, 50), matNoLight));
-
-    //_sceneObjects.push_back(ShapeFactory::createRectangle(2, 100, glm::vec2(150, 300), matNoLight2));
-    //_sceneObjects.push_back(ShapeFactory::createRectangle(2, 100, glm::vec2(150, 150), matNoLight2));
-
-
-    //glm::vec2 center(300, 200);
-    //for (float r = 0; r > -glm::pi<float>() + 0.3f; r -= 0.05) {
-    //    _sceneObjects.push_back(ShapeFactory::createSegment(center + glm::vec2(cos(r), sin(r)) * 50.f, center + glm::vec2(cos(r - 0.05f), sin(r - 0.05f)) * 50.f,
-    //        matNoLight2));
-    //}
-
-    //_sceneObjects.push_back(std::make_shared<Circle>(glm::vec2(550, 300), 50, matNoLight);
-    //float t;
-    //bool b = raySegmentIntersect(Ray(glm::vec2(0, 0), glm::vec2(1, 0)), glm::vec2(0.5, 0), glm::vec2(1, 0), t);
-
-    _bvhTree = std::make_unique<BVHTree>();
-    _bvhTree->build(_sceneObjects);
+    printf("Build Complete\n");
 }
 
 Scene::~Scene() {
@@ -110,11 +108,12 @@ bool Scene::castRay(const Ray& ray, IntersectionInfo& info) {
     }
     return intersectInfo.getHitObject();
 #else
-    return _bvhTree->rayIntersect(ray, info);
+    return _accelTree->rayIntersect(ray, info);
 #endif
 
 }
 
 void Scene::showDebugInfo(FrameBuffer& frame) {
-    // _bvhTree->walkRectangles(frame);
+    // _accelTree->walkRectangles(frame);
+    _accelTree->report();
 }

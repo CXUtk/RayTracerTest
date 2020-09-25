@@ -1,6 +1,6 @@
 ﻿#include "MetalMat.h"
 #include "Structure/Utils.h"
-MetalMat::MetalMat() {
+MetalMat::MetalMat() :_fuzz(0) {
 }
 bool MetalMat::scatter(const Ray& ray, const IntersectionInfo& info, glm::vec3& attenuation, Ray& new_ray) {
     auto N = info.getNormal();

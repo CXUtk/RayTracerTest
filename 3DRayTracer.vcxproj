@@ -157,17 +157,21 @@
     <ClCompile Include="src\Render\RayTracer.cpp" />
     <ClCompile Include="src\Render\Renderer.cpp" />
     <ClCompile Include="src\stbi_image.cpp" />
+    <ClCompile Include="src\Structure\AccelStructure\BVHSAH.cpp" />
     <ClCompile Include="src\Structure\BoundingBox.cpp" />
-    <ClCompile Include="src\Structure\BVH\BVH.cpp" />
+    <ClCompile Include="src\Structure\AccelStructure\BVH.cpp" />
     <ClCompile Include="src\Structure\IntersectionInfo.cpp" />
     <ClCompile Include="src\Structure\Material.cpp" />
     <ClCompile Include="src\Structure\Materials\DiffuseMat.cpp" />
+    <ClCompile Include="src\Structure\Materials\GlassMat.cpp" />
+    <ClCompile Include="src\Structure\Materials\LightMat.cpp" />
     <ClCompile Include="src\Structure\Materials\MetalMat.cpp" />
     <ClCompile Include="src\Structure\Materials\NormalMat.cpp" />
     <ClCompile Include="src\Structure\Object.cpp" />
     <ClCompile Include="src\Structure\Ray.cpp" />
     <ClCompile Include="src\Structure\SceneObject\Sphere.cpp" />
     <ClCompile Include="src\Structure\SceneObject\Triangle.cpp" />
+    <ClCompile Include="src\Structure\SceneObject\TriangleMesh.cpp" />
     <ClCompile Include="src\Structure\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -177,11 +181,16 @@
     <ClInclude Include="src\Render\FrameBuffer.h" />
     <ClInclude Include="src\Render\RayTracer.h" />
     <ClInclude Include="src\Render\Renderer.h" />
+    <ClInclude Include="src\Structure\AccelStructure\AccelStructure.h" />
+    <ClInclude Include="src\Structure\AccelStructure\BVHSAH.h" />
     <ClInclude Include="src\Structure\BoundingBox.h" />
-    <ClInclude Include="src\Structure\BVH\BVH.h" />
+    <ClInclude Include="src\Structure\AccelStructure\BVH.h" />
     <ClInclude Include="src\Structure\IntersectionInfo.h" />
     <ClInclude Include="src\Structure\Material.h" />
     <ClInclude Include="src\Structure\Materials\DiffuseMat.h" />
+    <ClInclude Include="src\Structure\Materials\GlassMat.h" />
+    <ClInclude Include="src\Structure\Materials\LightMat.h" />
+    <ClInclude Include="src\Structure\Materials\MaterialFactory.h" />
     <ClInclude Include="src\Structure\Materials\MetalMat.h" />
     <ClInclude Include="src\Structure\Materials\NormalMat.h" />
     <ClInclude Include="src\Structure\Object.h" />

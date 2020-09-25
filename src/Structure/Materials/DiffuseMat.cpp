@@ -2,6 +2,9 @@
 #include "Structure/Utils.h"
 DiffuseMat::DiffuseMat() {
 }
+DiffuseMat::DiffuseMat(const glm::vec3& color) {
+    setDiffuseColor(color);
+}
 bool DiffuseMat::scatter(const Ray& ray, const IntersectionInfo& info, glm::vec3& attenuation, Ray& new_ray) {
     auto N = info.getNormal();
     auto v = N + randSphereVec();

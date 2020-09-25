@@ -3,7 +3,7 @@
 #include "Structure/Ray.h"
 class Camera {
 public:
-    Camera(const glm::vec3& pos, float fov, float aspectRatio, float zNear);
+    Camera(const glm::vec3& pos, const glm::vec3& lookat, const glm::vec3& up, float fov, float aspectRatio, float zNear);
     ~Camera();
     Ray getRay(float u, float v) const;
 

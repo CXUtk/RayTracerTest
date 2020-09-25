@@ -1,6 +1,6 @@
 ﻿#include "Triangle.h"
 #include "Structure/Utils.h"
-Triangle::Triangle(const std::vector<glm::vec3> pts, std::shared_ptr<Material> material) {
+Triangle::Triangle(const std::vector<glm::vec3>& pts, std::shared_ptr<Material> material) {
     v[0] = pts[0], v[1] = pts[1], v[2] = pts[2];
     _material = material;
 
@@ -61,9 +61,9 @@ glm::vec3 Triangle::getSampleColor(const glm::vec3& pos) const {
     return glm::vec3();
 }
 
-bool Triangle::rayInside(const Ray& ray) const {
-    return false;
-}
+//bool Triangle::rayInside(const Ray& ray) const {
+//    return false;
+//}
 
 glm::vec3 Triangle::getNormal(glm::vec3 hitpos, glm::vec3 dir) const {
     auto N = glm::normalize(glm::cross(v[1] - v[0], v[2] - v[0]));

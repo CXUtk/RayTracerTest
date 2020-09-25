@@ -10,7 +10,7 @@ glm::vec2 lineIntersection(glm::vec2 l1, glm::vec2 d1, glm::vec2 l2, glm::vec2 d
     return l1 + d1 * t;
 }
 
-std::mt19937 random;
+std::mt19937 random(114514);
 float randFloat() {
     return random() / (float)random.max();
 }

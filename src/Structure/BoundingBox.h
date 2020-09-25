@@ -4,7 +4,7 @@
 #include <Structure\Ray.h>
 class BoundingBox {
 public:
-    BoundingBox() = default;
+    BoundingBox();
     BoundingBox(const glm::vec3& minPos, const glm::vec3& maxPos);
     ~BoundingBox();
 

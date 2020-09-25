@@ -3,7 +3,7 @@
 #include <memory>
 #include "Structure/Object.h"
 #include "Render/FrameBuffer.h"
-#include "Structure/BVH/BVH.h"
+#include "Structure/AccelStructure/AccelStructure.h"
 class Scene {
 public:
     Scene();
@@ -13,5 +13,6 @@ public:
     void showDebugInfo(FrameBuffer& frame);
 private:
     std::vector<std::shared_ptr<Object>> _sceneObjects;
-    std::unique_ptr<BVHTree> _bvhTree;
+    std::unique_ptr<AccelStructure> _accelTree;
+    std::vector<std::shared_ptr<Object>> _sceneLights;
 };

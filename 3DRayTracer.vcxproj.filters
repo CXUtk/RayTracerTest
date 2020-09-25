@@ -63,9 +63,6 @@
     <ClCompile Include="src\Render\Camera.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\Structure\BVH\BVH.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\Structure\Materials\DiffuseMat.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -73,6 +70,21 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\Structure\Materials\NormalMat.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Structure\Materials\GlassMat.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Structure\Materials\LightMat.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Structure\SceneObject\TriangleMesh.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Structure\AccelStructure\BVH.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Structure\AccelStructure\BVHSAH.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -122,9 +134,6 @@
     <ClInclude Include="src\Render\Camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Structure\BVH\BVH.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\Structure\Materials\DiffuseMat.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -132,6 +141,24 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\Structure\Materials\NormalMat.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Structure\Materials\GlassMat.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Structure\Materials\MaterialFactory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Structure\Materials\LightMat.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Structure\AccelStructure\BVH.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Structure\AccelStructure\AccelStructure.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Structure\AccelStructure\BVHSAH.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

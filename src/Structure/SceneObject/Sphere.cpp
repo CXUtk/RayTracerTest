@@ -8,7 +8,7 @@ Sphere::~Sphere() {
 }
 
 BoundingBox Sphere::getBoundingBox() const {
-    return BoundingBox(_center - glm::vec3(_radius), _center + glm::vec3(_radius));
+    return BoundingBox(_center - glm::vec3(abs(_radius)), _center + glm::vec3(abs(_radius)));
 }
 
 bool Sphere::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
@@ -38,10 +38,10 @@ glm::vec3 Sphere::getSampleColor(const glm::vec3& pos) const {
     return glm::vec3();
 }
 
-bool Sphere::rayInside(const Ray& ray) const {
-    return glm::length(ray.getStart() - _center) <= _radius;
-}
+//bool Sphere::rayInside(const Ray& ray) const {
+//    return glm::length(ray.getStart() - _center) <= _radius;
+//}
 
 glm::vec3 Sphere::getNormal(glm::vec3 hitpos, glm::vec3 dir) const {
-    return glm::normalize(hitpos - _center);
+    return (hitpos - _center) / _radius;
 }
