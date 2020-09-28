@@ -1,4 +1,4 @@
-﻿#include "BVHSAH.h"
+﻿#include "KDTree.h"
 #include "Structure/Utils.h"
 #include <algorithm>
 
@@ -6,7 +6,7 @@
 #define chi(p, d) _nodes[p].ch[d]
 #define chd(p, d) _nodes[_nodes[p].ch[d]]
 
-BVHSAH::BVHSAH() {
+KDTree::KDTree() {
     _nodes[0] = BVHSAHNode();
     _root = 0, _tot = 0;
     _objects.clear();
@@ -15,10 +15,10 @@ BVHSAH::BVHSAH() {
     _callCnt = 0;
 }
 
-BVHSAH::~BVHSAH() {
+KDTree::~KDTree() {
 }
 
-void BVHSAH::build(const std::vector<std::shared_ptr<Object>>& objects) {
+void KDTree::build(const std::vector<std::shared_ptr<Object>>& objects) {
     for (auto ptr : objects)
         _objects.push_back(ptr.get());
     int sz = _objects.size();
@@ -27,7 +27,7 @@ void BVHSAH::build(const std::vector<std::shared_ptr<Object>>& objects) {
 
 static int numStep;
 
-bool BVHSAH::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
+bool KDTree::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     numStep = 0;
     bool hit = false;
     constexpr float MAX = std::numeric_limits<float>::infinity();
@@ -63,7 +63,7 @@ bool BVHSAH::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     _callCnt++;
     return hit;
 }
-void BVHSAH::report() const {
+void KDTree::report() const {
     printf("Total Step: %lld\n", _totNum);
     printf("Total Called: %lld\n", _callCnt);
     printf("Average Step: %lf\n", _totNum / (double)_callCnt);
@@ -71,20 +71,20 @@ void BVHSAH::report() const {
 }
 
 
-int BVHSAH::newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split) {
+int KDTree::newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split) {
     ++_tot;
     _nodes[_tot] = BVHSAHNode(box, objs, split);
     return _tot;
 }
 
-void BVHSAH::push_up(int p) {
+void KDTree::push_up(int p) {
     if (chi(p, 0))
         self.box = self.box.Union(chd(p, 0).box);
     if (chi(p, 1))
         self.box = self.box.Union(chd(p, 1).box);
 }
 
-void BVHSAH::_build(int& p, int l, int r) {
+void KDTree::_build(int& p, int l, int r) {
     BoundingBox box;
     std::vector<Object*> objs;
     if (l > r - 5) {
@@ -152,7 +152,7 @@ void BVHSAH::_build(int& p, int l, int r) {
     push_up(p);
 }
 
-bool BVHSAH::ray_test(int p, const Ray& ray, IntersectionInfo& info, float tMin, float tMax) const {
+bool KDTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, float tMin, float tMax) const {
     numStep++;
     if (!self.box.rayIntersect(ray, tMin, tMax)) return false;
     if (tMin >= info.getDistance()) return false;

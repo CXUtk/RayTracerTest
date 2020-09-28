@@ -1,5 +1,8 @@
 ﻿#include "Utils.h"
 
+static std::mt19937 random(114514);
+static long long NumCalls = 0;
+
 int dcmp(float v) {
     if (fabs(v) < EPS) return 0;
     return v > 0 ? 1 : -1;
@@ -10,9 +13,14 @@ glm::vec2 lineIntersection(glm::vec2 l1, glm::vec2 d1, glm::vec2 l2, glm::vec2 d
     return l1 + d1 * t;
 }
 
-std::mt19937 random(114514);
+
 float randFloat() {
+    NumCalls++;
     return random() / (float)random.max();
+}
+
+void ReportRandom() {
+    printf("%lld\n", NumCalls);
 }
 
 glm::vec3 randVec3() {

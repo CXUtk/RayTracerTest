@@ -4,13 +4,15 @@ Triangle::Triangle(const std::vector<glm::vec3>& pts, std::shared_ptr<Material> 
     v[0] = pts[0], v[1] = pts[1], v[2] = pts[2];
     _material = material;
 
-    glm::vec3 minn = pts[0];
-    glm::vec3 maxx = pts[0];
-    for (int i = 1; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            minn[j] = std::min(minn[j], pts[i][j]);
-            maxx[j] = std::max(maxx[j], pts[i][j]);
-        }
+    glm::vec3 minn = v[0];
+    glm::vec3 maxx = v[0];
+    for (int j = 0; j < 3; j++) {
+        minn[j] = std::min(minn[j], v[1][j]);
+        maxx[j] = std::max(maxx[j], v[1][j]);
+    }
+    for (int j = 0; j < 3; j++) {
+        minn[j] = std::min(minn[j], v[2][j]);
+        maxx[j] = std::max(maxx[j], v[2][j]);
     }
     _boundingBox = BoundingBox(minn, maxx);
 }
@@ -19,15 +21,15 @@ Triangle::Triangle(const glm::vec3 v1, const glm::vec3& v2, const glm::vec3& v3,
     v[0] = v1, v[1] = v2, v[2] = v3;
     _material = material;
 
-    glm::vec3 minn = v1;
-    glm::vec3 maxx = v1;
+    glm::vec3 minn = v[0];
+    glm::vec3 maxx = v[0];
     for (int j = 0; j < 3; j++) {
-        minn[j] = std::min(minn[j], v2[j]);
-        maxx[j] = std::max(maxx[j], v2[j]);
+        minn[j] = std::min(minn[j], v[1][j]);
+        maxx[j] = std::max(maxx[j], v[1][j]);
     }
     for (int j = 0; j < 3; j++) {
-        minn[j] = std::min(minn[j], v3[j]);
-        maxx[j] = std::max(maxx[j], v3[j]);
+        minn[j] = std::min(minn[j], v[2][j]);
+        maxx[j] = std::max(maxx[j], v[2][j]);
     }
     _boundingBox = BoundingBox(minn, maxx);
 }

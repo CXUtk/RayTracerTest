@@ -10,30 +10,30 @@ enum SplitMethod {
     SAH,
     EQUAL,
 };
-struct BVHSAHNode {
+struct KDTreeNode {
     BoundingBox box;
     std::vector<Object*> objs;
     int ch[2], splitAxis;
 
-    BVHSAHNode() : box(), splitAxis(0) {
+    KDTreeNode() : box(), splitAxis(0) {
         ch[0] = ch[1] = 0;
     }
 
-    BVHSAHNode(const BoundingBox& box, const std::vector<Object*>& objs, int split) :box(box), objs(objs), splitAxis(split) {
+    KDTreeNode(const BoundingBox& box, const std::vector<Object*>& objs, int split) :box(box), objs(objs), splitAxis(split) {
         ch[0] = ch[1] = 0;
     }
 };
-class BVHSAH : public AccelStructure {
+class KDTree : public AccelStructure {
 public:
-    BVHSAH();
-    ~BVHSAH();
+    KDTree();
+    ~KDTree();
     void build(const std::vector<std::shared_ptr<Object>>& objects) override;
     bool rayIntersect(const Ray& ray, IntersectionInfo& info) const override;
     void report() const override;
 
 private:
     int _tot, _root;
-    BVHSAHNode _nodes[1048576];
+    KDTreeNode _nodes[1048576];
     std::vector<Object*> _objects;
 
     mutable long long _totNum, _maxNum, _callCnt;

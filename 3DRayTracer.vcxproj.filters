@@ -81,10 +81,19 @@
     <ClCompile Include="src\Structure\SceneObject\TriangleMesh.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\Structure\AccelStructure\BVH.cpp">
+    <ClCompile Include="src\Structure\AccelStructure\BVHSAH.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\Structure\AccelStructure\BVHSAH.cpp">
+    <ClCompile Include="src\Structure\AccelStructure\AccelStructure.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Structure\AccelStructure\BruteForce.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Structure\AccelStructure\Quick.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Structure\AccelStructure\KDTree.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -152,13 +161,19 @@
     <ClInclude Include="src\Structure\Materials\LightMat.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Structure\AccelStructure\BVH.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\Structure\AccelStructure\AccelStructure.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\Structure\AccelStructure\BVHSAH.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Structure\AccelStructure\BruteForce.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Structure\AccelStructure\Quick.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Structure\AccelStructure\KDTree.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

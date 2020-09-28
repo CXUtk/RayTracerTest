@@ -14,11 +14,11 @@ struct BVHNode {
         ch[0] = ch[1] = 0;
     }
 };
-class BVHTree : public AccelStructure {
+class Quick : public AccelStructure {
 public:
-    BVHTree() = default;
-    BVHTree(int maxsize);
-    ~BVHTree();
+    Quick() = default;
+    Quick(int maxsize);
+    ~Quick();
     void build(const std::vector<std::shared_ptr<Object>>& objects) override;
     bool rayIntersect(const Ray& ray, IntersectionInfo& info) const override;
     void walkRectangles(FrameBuffer& frame) const;
@@ -32,7 +32,7 @@ private:
     int newNode(Object* optr);
     void push_up(int p);
     void _build(int& p, int l, int r, int d);
-    bool ray_test(int p, const Ray& ray, IntersectionInfo& info, int d) const;
+    bool ray_test(int p, const Ray& ray, IntersectionInfo& info, int d, float tMin, float tMax)const;
 
     // Statistic Data
     mutable long long _totNum, _maxNum, _callCnt;

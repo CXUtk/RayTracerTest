@@ -8,6 +8,7 @@
 #include <mutex>
 #include "Structure/SceneObject/Triangle.h"
 #include "Structure/SceneObject/Sphere.h"
+#include "Structure/Utils.h"
 
 RayTracer::RayTracer(int width, int height) :_width(width), _height(height) {
     _scene = std::make_unique<Scene>();
@@ -54,6 +55,7 @@ void RayTracer::run() {
     //for (float r = 0; r < 6.28f; r += 0.5f) {
     //    Bresenham(glm::ivec2(100, 100), glm::ivec2(100 + cos(r) * 50, 100 + sin(r) * 50), buffer);
     //}
+    ReportRandom();
     stbi_write_png("test.png", _width, _height, 3, buffer.getData(), _width * 3);
 
     endTime = clock();  //计时结束
@@ -98,7 +100,7 @@ glm::vec3 RayTracer::castRay(const Ray& ray, int depth) {
 }
 
 void RayTracer::renderPos(glm::ivec2 pos, FrameBuffer& buffer) {
-    float sampleCount = 1;
+    float sampleCount = 512;
     glm::vec3 totColor(0);
     for (int i = 0; i < sampleCount; i++) {
         glm::vec2 p2(randFloat(), randFloat());

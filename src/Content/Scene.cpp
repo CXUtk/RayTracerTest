@@ -15,7 +15,6 @@
 #include "Structure/Materials/LightMat.h"
 #include "Structure/SceneObject/TriangleMesh.h"
 
-#include "Structure/AccelStructure/BVH.h"
 #include "OBJ_Loader.hpp"
 
 Scene::Scene() {
@@ -77,10 +76,8 @@ Scene::Scene() {
         //trimesh.clear();
     }
     printf("%d\n", _sceneObjects.size());
-
-    _accelTree = std::make_unique<BVHTree>(1048576);
+    _accelTree = AccelStructure::makeAccelStructure("BVH", 1048576);
     _accelTree->build(_sceneObjects);
-
     printf("Build Complete\n");
 }
 

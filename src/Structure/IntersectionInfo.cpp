@@ -1,12 +1,13 @@
 ﻿#include "IntersectionInfo.h"
 
-IntersectionInfo::IntersectionInfo() :_hitObject(nullptr), _distance(std::numeric_limits<float>::max()), _hitPos(0), _normal(0), _frontFace(false) {
+IntersectionInfo::IntersectionInfo() :_hitObject(nullptr), _distance(std::numeric_limits<float>::infinity()), _hitPos(0), _normal(0), _frontFace(false) {
 }
 
 IntersectionInfo::~IntersectionInfo() {
 }
 
 void IntersectionInfo::quickSetInfo(const Ray& ray, float t, const Object* obj) {
+    if (t >= _distance) return;
     auto hitpos = t * ray.getDir() + ray.getStart();
     setHitPos(hitpos);
     setDistance(t);

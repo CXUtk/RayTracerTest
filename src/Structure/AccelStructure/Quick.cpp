@@ -1,4 +1,4 @@
-﻿#include "BVH.h"
+﻿#include "Quick.h"
 #include "Structure/Utils.h"
 #include <algorithm>
 
@@ -6,7 +6,7 @@
 #define chi(p, d) _nodes[p].ch[d]
 #define chd(p, d) _nodes[_nodes[p].ch[d]]
 
-BVHTree::BVHTree(int maxsize) {
+Quick::Quick(int maxsize) {
     for (int i = 0; i <= maxsize + 5; i++)
         _nodes.push_back(BVHNode());
     _root = 0, _tot = 0;
@@ -16,10 +16,10 @@ BVHTree::BVHTree(int maxsize) {
     _callCnt = 0;
 }
 
-BVHTree::~BVHTree() {
+Quick::~Quick() {
 }
 
-void BVHTree::build(const std::vector<std::shared_ptr<Object>>& objects) {
+void Quick::build(const std::vector<std::shared_ptr<Object>>& objects) {
     for (const auto& ptr : objects) {
         _objects.push_back(ptr.get());
     }
@@ -28,29 +28,29 @@ void BVHTree::build(const std::vector<std::shared_ptr<Object>>& objects) {
 }
 
 static int numStep;
-bool BVHTree::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
-    float t;
+bool Quick::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     numStep = 0;
     bool ret = false;
-    ret |= _nodes[_root].box.rayIntersect(ray, t) && ray_test(_root, ray, info, 0);
+    constexpr float MAX = std::numeric_limits<float>::infinity();
+    ret |= ray_test(_root, ray, info, 0, 0, info.getDistance());
     _totNum += numStep;
     _maxNum = std::max(_maxNum, (long long)numStep);
     _callCnt++;
     return ret;
 }
 
-void BVHTree::walkRectangles(FrameBuffer& frame) const {
+void Quick::walkRectangles(FrameBuffer& frame) const {
     // _dfsDrawRect(_root, frame);
 }
 
-void BVHTree::report() const {
+void Quick::report() const {
     printf("Total Step: %lld\n", _totNum);
     printf("Total Called: %lld\n", _callCnt);
     printf("Average Step: %lf\n", _totNum / (double)_callCnt);
     printf("Max Step: %lld\n", _maxNum);
 }
 
-//void BVHTree::_dfsDrawRect(int p, FrameBuffer& frame) const {
+//void Quick::_dfsDrawRect(int p, FrameBuffer& frame) const {
 //    if (!p) return;
 //    if (self.object != nullptr) {
 //        auto box = self.object->getBoundingBox();
@@ -61,19 +61,19 @@ void BVHTree::report() const {
 //    _dfsDrawRect(chi(p, 1), frame);
 //}
 
-int BVHTree::newNode(Object* optr) {
+int Quick::newNode(Object* optr) {
     ++_tot;
     _nodes[_tot].box = optr->getBoundingBox();
     _nodes[_tot].object = optr;
     return _tot;
 }
 
-void BVHTree::push_up(int p) {
+void Quick::push_up(int p) {
     self.box = self.box.Union(chd(p, 0).box);
     self.box = self.box.Union(chd(p, 1).box);
 }
 
-void BVHTree::_build(int& p, int l, int r, int d) {
+void Quick::_build(int& p, int l, int r, int d) {
     if (l > r) return;
     int mid = (l + r) / 2;
     auto cmp = [=](Object* A, Object* B) {
@@ -86,10 +86,9 @@ void BVHTree::_build(int& p, int l, int r, int d) {
     push_up(p);
 }
 
-bool BVHTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, int d) const {
+bool Quick::ray_test(int p, const Ray& ray, IntersectionInfo& info, int d, float tMin, float tMax) const {
     numStep++;
-    if (!p) return false;
-    float tl, tr;
+    if (!self.box.rayIntersect(ray, tMin, tMax)) return false;
     bool hit = false;
     if (self.object != nullptr) {
         IntersectionInfo tmp;
@@ -101,8 +100,13 @@ bool BVHTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, int d) con
         }
     }
     int nxt = (d + 1) % 3;
-    if (!chi(p, 0) || !chd(p, 0).box.rayIntersect(ray, tl)) tl = std::numeric_limits<float>::max();
-    if (!chi(p, 1) || !chd(p, 1).box.rayIntersect(ray, tr)) tr = std::numeric_limits<float>::max();
+    if (chi(p, 0)) {
+        hit |= ray_test(chi(p, 0), ray, info, nxt, tMin, info.getDistance());
+    }
+    if (chi(p, 1)) {
+        hit |= ray_test(chi(p, 1), ray, info, nxt, tMin, info.getDistance());
+    }
+    /*if (!chi(p, 1) || !chd(p, 1).box.rayIntersect(ray, tr)) tr = std::numeric_limits<float>::max();
     int d2 = 0;
     if (tl > tr) {
         std::swap(tl, tr);
@@ -114,6 +118,6 @@ bool BVHTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, int d) con
     }
     if (tr < info.getDistance()) {
         hit |= ray_test(chi(p, !d2), ray, info, nxt);
-    }
+    }*/
     return hit;
 }

@@ -1,6 +1,6 @@
 ﻿#include "BoundingBox.h"
 #include "Utils.h"
-BoundingBox::BoundingBox() : _minPos(glm::vec3(0)), _maxPos(glm::vec3(0)) {
+BoundingBox::BoundingBox() : _minPos(glm::vec3(std::numeric_limits<float>::infinity())), _maxPos(glm::vec3(-std::numeric_limits<float>::infinity())) {
 }
 BoundingBox::BoundingBox(const glm::vec3& minPos, const glm::vec3& maxPos) : _minPos(minPos), _maxPos(maxPos) {
 }
@@ -8,20 +8,17 @@ BoundingBox::BoundingBox(const glm::vec3& minPos, const glm::vec3& maxPos) : _mi
 BoundingBox::~BoundingBox() {
 }
 
-bool BoundingBox::rayIntersect(const Ray& ray, float& tNear) const {
+bool BoundingBox::rayIntersect(const Ray& ray, float& tMin, float& tMax) const {
     glm::vec3 start = ray.getStart(), dir = ray.getDir();
-    float tMax = std::numeric_limits<float>().infinity();
-    tNear = -std::numeric_limits<float>().infinity();
     for (int i = 0; i < 3; i++) {
         auto invD = 1.0f / dir[i];
         auto t0 = (_minPos[i] - start[i]) * invD;
         auto t1 = (_maxPos[i] - start[i]) * invD;
         if (invD < 0) std::swap(t0, t1);
-        tNear = std::max(tNear, t0);
+        tMin = std::max(tMin, t0);
         tMax = std::min(tMax, t1);
-        if (tMax < tNear) return false;
+        if (tMax < tMin) return false;
     }
-    if (tNear < 0) tNear = tMax;
     //float tRange[3][2];
     //// 竖直的射线
     //if (!dcmp(ray.getDir().x)) {
@@ -55,5 +52,5 @@ bool BoundingBox::rayIntersect(const Ray& ray, float& tNear) const {
     //if (tMin > tMax) return false;
     //if (std::max(tMin, tMax) < 0) return false;
     //tNear = std::max(0.f, tMin);
-    return tNear >= 0;
+    return true;
 }

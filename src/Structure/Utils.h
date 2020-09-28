@@ -26,6 +26,8 @@ glm::vec3 randSphereVec();
 
 void drawRectangle(glm::vec2 start, glm::vec2 size, FrameBuffer& frame);
 
+void ReportRandom();
+
 
 void Bresenham(glm::ivec2 start, glm::ivec2 end, FrameBuffer& frame);
 
