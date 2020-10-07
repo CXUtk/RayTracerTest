@@ -12,8 +12,9 @@
 
 RayTracer::RayTracer(int width, int height) :_width(width), _height(height) {
     _scene = std::make_unique<Scene>();
-    // _camera = std::make_unique<Camera>(glm::vec3(100, 200, 650), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::half_pi<float>(), 4.0f / 3.0f, 1);
-    _camera = std::make_unique<Camera>(glm::vec3(-6, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::half_pi<float>() / 2.5f, 4.0f / 3.0f, 1);
+    //_camera = std::make_unique<Camera>(glm::vec3(100, 200, 650), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::half_pi<float>(), 4.0f / 3.0f, 1);
+    // _camera = std::make_unique<Camera>(glm::vec3(-6, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::half_pi<float>() / 2.5f, 4.0f / 3.0f, 1);
+    _camera = std::make_unique<Camera>(glm::vec3(-5, 5, 7), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::half_pi<float>() / 2.5f, 4.0f / 3.0f, 1);
 }
 
 RayTracer::~RayTracer() {
@@ -26,7 +27,7 @@ void RayTracer::run() {
     FrameBuffer buffer(_width, _height, 3);
     int val = 0;
 #ifdef MULTI
-    constexpr int NUM_THREADS = 10;
+    constexpr int NUM_THREADS = 5;
     std::shared_ptr<std::thread> threads[NUM_THREADS];
     for (int k = 0; k < NUM_THREADS; k++) {
         threads[k] = std::make_shared<std::thread>([=, &buffer, &val]() {
@@ -75,7 +76,7 @@ glm::vec3 RayTracer::castRay(const Ray& ray, int depth) {
             glm::vec3 reflectColor(0);
             glm::vec3 selfColor = hitObj->getMaterial()->getColor(ray, intersectInfo);
             if (hitObj->getMaterial()->scatter(ray, intersectInfo, attenuation, new_ray)) {
-                reflectColor = attenuation * castRay(new_ray, depth + 1);
+                reflectColor = attenuation * (castRay(new_ray, depth + 1) + sampleLight(intersectInfo));
             }
             return selfColor + reflectColor;
 
@@ -99,8 +100,12 @@ glm::vec3 RayTracer::castRay(const Ray& ray, int depth) {
     return  glm::vec3(1) * (1 - t) + glm::vec3(0.5, 0.7, 1.0) * t;
 }
 
+glm::vec3 RayTracer::sampleLight(const IntersectionInfo& info) {
+    return _scene->sampleLight(info);
+}
+
 void RayTracer::renderPos(glm::ivec2 pos, FrameBuffer& buffer) {
-    float sampleCount = 512;
+    float sampleCount = 1;
     glm::vec3 totColor(0);
     for (int i = 0; i < sampleCount; i++) {
         glm::vec2 p2(randFloat(), randFloat());

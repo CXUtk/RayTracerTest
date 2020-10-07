@@ -19,9 +19,11 @@ BVHSAH::~BVHSAH() {
 }
 
 void BVHSAH::build(const std::vector<std::shared_ptr<Object>>& objects) {
+
     for (auto ptr : objects)
         _objects.push_back(ptr.get());
     int sz = _objects.size();
+    printf("%d\n", sz);
     _build(_root, 0, sz - 1);
 }
 
@@ -87,7 +89,7 @@ void BVHSAH::push_up(int p) {
 void BVHSAH::_build(int& p, int l, int r) {
     BoundingBox box;
     std::vector<Object*> objs;
-    if (l > r - 5) {
+    if (l > r - 6) {
         for (int i = l; i <= r; i++) {
             box = box.Union(_objects[i]->getBoundingBox());
             objs.push_back(_objects[i]);

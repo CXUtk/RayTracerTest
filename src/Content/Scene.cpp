@@ -24,16 +24,17 @@ Scene::Scene() {
     std::shared_ptr<DiffuseMat> redMat = std::make_shared<DiffuseMat>();
     std::shared_ptr<GlassMat> glassMat = std::make_shared<GlassMat>();
     redMat->setDiffuseColor(glm::vec3(0.7, 0.2, 0.2));
-    std::shared_ptr<MetalMat> metalMat = std::make_shared<MetalMat>(glm::vec3(0.8, 0.8, 0.8), 0.15f);
-    std::shared_ptr<LightMat> lightMat = std::make_shared<LightMat>(glm::vec3(10));
+    std::shared_ptr<MetalMat> metalMat = std::make_shared<MetalMat>(glm::vec3(0.9, 0.9, 0.7), 0.15f);
+    std::shared_ptr<LightMat> lightMat = std::make_shared<LightMat>(glm::vec3(3));
 
-    auto sphere = std::make_shared<Sphere>(glm::vec3(0, 5, 0), 1, lightMat);
+    auto sphere = std::make_shared<Sphere>(glm::vec3(0, 10, 0), 1, lightMat);//std::make_shared<Sphere>(glm::vec3(0, 5, 0), 1, lightMat);
     auto sphere2 = std::make_shared<Sphere>(glm::vec3(0, 0, -3), 1, redMat);
     auto tri1 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(5, -1, 5), glm::vec3(5, -1, -5), defMat);
     auto tri2 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(-5, -1, -5), glm::vec3(5, -1, -5), defMat);
+    _sceneLights.push_back(sphere);
     _sceneObjects.push_back(sphere);
     _sceneObjects.push_back(sphere2);
-    _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(-2, 0, 2), -0.5, glassMat));
+    _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(-2, 0, 2), 0.5, glassMat));
     _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(2, 0, 2), 0.5, metalMat));
     // _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(0, -0.5, 3), 0.5, glassMat));
     _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(0, -0.5, 3), 0.5, std::make_shared<DiffuseMat>(glm::vec3(0.5, 1, 0.5))));
@@ -41,7 +42,7 @@ Scene::Scene() {
     _sceneObjects.push_back(tri2);
 
     objl::Loader loader;
-    loader.LoadFile("models/f-16.obj");
+    loader.LoadFile("models/teapot.obj");
     std::map<std::string, std::shared_ptr<Material>> matTable;
     for (auto& mat : loader.LoadedMaterials) {
         std::shared_ptr<Material> matR = std::make_shared<DiffuseMat>(glm::vec3(mat.Kd.X, mat.Kd.Y, mat.Kd.Z));
@@ -76,8 +77,9 @@ Scene::Scene() {
         //trimesh.clear();
     }
     printf("%d\n", _sceneObjects.size());
-    _accelTree = AccelStructure::makeAccelStructure("BVH", 1048576);
+    _accelTree = AccelStructure::makeAccelStructure("Oct", 1048576);
     _accelTree->build(_sceneObjects);
+    printf("%d\n", _accelTree->numOfNodes());
     printf("Build Complete\n");
 }
 
@@ -113,4 +115,22 @@ bool Scene::castRay(const Ray& ray, IntersectionInfo& info) {
 void Scene::showDebugInfo(FrameBuffer& frame) {
     // _accelTree->walkRectangles(frame);
     _accelTree->report();
+}
+
+glm::vec3 Scene::sampleLight(const IntersectionInfo& info) {
+    auto normal = info.getNormal();
+    glm::vec3 color(0);
+    for (auto light : _sceneLights) {
+        if (randFloat() > 1.f / light->emitArea()) continue;
+        auto pos = light->uniformGetSurface();
+        auto dir = pos - info.getHitPos();
+        auto c = glm::clamp(glm::dot(normal, dir) / glm::dot(dir, dir) * light->emitArea(), 0.f, 1.f);
+
+        dir = glm::normalize(dir);
+        IntersectionInfo tmp;
+        auto ray = Ray(info.getHitPos() + dir * 0.0001f, dir);
+        if (castRay(ray, tmp) && tmp.getHitObject() == light.get())
+            color += c * light->getMaterial()->getColor(ray, tmp);
+    }
+    return color;
 }

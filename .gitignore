@@ -26,6 +26,9 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+# User define
+*.png
+*.exe
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -340,6 +343,3 @@ ASALocalRun/
 healthchecksdb
 
 
-# User define
-*.png
-*.exe

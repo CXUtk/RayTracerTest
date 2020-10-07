@@ -13,6 +13,7 @@ public:
 
 private:
     glm::vec3 castRay(const Ray& ray, int depth);
+    glm::vec3 sampleLight(const IntersectionInfo& info);
     void renderPos(glm::ivec2 pos, FrameBuffer& buffer);
     int _width, _height;
 

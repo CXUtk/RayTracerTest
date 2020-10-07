@@ -30,6 +30,7 @@ public:
     void build(const std::vector<std::shared_ptr<Object>>& objects) override;
     bool rayIntersect(const Ray& ray, IntersectionInfo& info) const override;
     void report() const override;
+    int numOfNodes() const override { return _tot; }
 
 private:
     int _tot, _root;

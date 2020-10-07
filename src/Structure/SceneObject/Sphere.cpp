@@ -1,4 +1,6 @@
 ﻿#include "Sphere.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include "Structure/Utils.h"
 
 Sphere::Sphere(glm::vec3 center, float radius, std::shared_ptr<Material> material) :_center(center), _radius(radius) {
     _material = material;
@@ -36,6 +38,14 @@ glm::vec3 Sphere::getDiffuseColor(const glm::vec3& pos) const {
 
 glm::vec3 Sphere::getSampleColor(const glm::vec3& pos) const {
     return glm::vec3();
+}
+
+float Sphere::emitArea() const {
+    return _radius * _radius * glm::pi<float>();
+}
+
+glm::vec3 Sphere::uniformGetSurface() const {
+    return _center + randSphereVec() * _radius;
 }
 
 //bool Sphere::rayInside(const Ray& ray) const {

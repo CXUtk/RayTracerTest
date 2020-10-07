@@ -14,6 +14,8 @@ public:
     virtual bool rayIntersect(const Ray& ray, IntersectionInfo& info) const = 0;
     virtual glm::vec3 getDiffuseColor(const glm::vec3& pos) const = 0;
     virtual glm::vec3 getSampleColor(const glm::vec3& pos) const = 0;
+    virtual float emitArea() const { return 0.0f; }
+    virtual glm::vec3 uniformGetSurface() const { return glm::vec3(0); }
     virtual glm::vec3 getNormal(glm::vec3 hitpos, glm::vec3 dir) const = 0;
 
     std::shared_ptr<Material> getMaterial() const { return _material; }

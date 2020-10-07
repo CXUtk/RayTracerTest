@@ -44,10 +44,10 @@ BoundingBox Triangle::getBoundingBox() const {
 }
 
 bool Triangle::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
-    glm::mat3 mat(v[1] - v[0], v[2] - v[0], -ray.getDir());
-    auto det = glm::determinant(mat);
+    glm::mat3 A(v[1] - v[0], v[2] - v[0], -ray.getDir());
+    auto det = glm::determinant(A);
     if (!dcmp(det)) return false;
-    auto inv = glm::inverse(mat);
+    auto inv = glm::inverse(A);
     glm::vec3 P = ray.getStart() - v[0];
     auto res = inv * P;
     if (res.x < 0 || res.x > 1 || res.y < 0 || res.y > 1 || res.x + res.y > 1 || res.z < 0) return false;

@@ -54,3 +54,9 @@ bool BoundingBox::rayIntersect(const Ray& ray, float& tMin, float& tMax) const {
     //tNear = std::max(0.f, tMin);
     return true;
 }
+
+bool BoundingBox::intersects(const BoundingBox& box) const {
+    for (int i = 0; i < 3; i++)
+        if (std::max(_minPos[i], box.getMinPos()[i]) > std::min(_maxPos[i], box.getMaxPos()[i])) return false;
+    return true;
+}

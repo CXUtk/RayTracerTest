@@ -5,35 +5,39 @@
 #include "Render/FrameBuffer.h"
 #include <vector>
 
-struct BVHNode {
+struct OctNode {
     BoundingBox box;
-    Object* object;
-    int ch[2];
+    std::vector<Object*> objs;
+    int ch[8];
+    int numOfPrimitives;
 
-    BVHNode() : box(glm::vec3(std::numeric_limits<float>::infinity()), glm::vec3(-std::numeric_limits<float>::infinity())), object(nullptr) {
-        ch[0] = ch[1] = 0;
+    OctNode() : box(glm::vec3(std::numeric_limits<float>::infinity()), glm::vec3(-std::numeric_limits<float>::infinity())), numOfPrimitives(0) {
+        memset(ch, 0, sizeof(ch));
     }
 };
-class Quick : public AccelStructure {
+class Octree : public AccelStructure {
 public:
-    Quick() = default;
-    Quick(int maxsize);
-    ~Quick();
+    Octree() = default;
+    Octree(int maxsize);
+    ~Octree();
     void build(const std::vector<std::shared_ptr<Object>>& objects) override;
     bool rayIntersect(const Ray& ray, IntersectionInfo& info) const override;
     void walkRectangles(FrameBuffer& frame) const;
     void report() const override;
 
+    void insert(std::shared_ptr<Object> object);
+
 private:
     int _tot, _root;
-    std::vector<BVHNode> _nodes;
+    OctNode _nodes[1048576];
     std::vector<Object*> _objects;
 
-    int newNode(Object* optr);
+    int newNode(const BoundingBox& box);
     void push_up(int p);
-    void _build(int& p, int l, int r, int d);
+    void _insert(int& p, std::shared_ptr<Object> object, int d, const BoundingBox& box);
     bool ray_test(int p, const Ray& ray, IntersectionInfo& info, int d, float tMin, float tMax)const;
 
     // Statistic Data
     mutable long long _totNum, _maxNum, _callCnt;
+    static constexpr int MAX_DEPTH = 7;
 };

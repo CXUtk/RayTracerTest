@@ -7,7 +7,7 @@
 #define chd(p, d) _nodes[_nodes[p].ch[d]]
 
 KDTree::KDTree() {
-    _nodes[0] = BVHSAHNode();
+    _nodes[0] = KDTreeNode();
     _root = 0, _tot = 0;
     _objects.clear();
     _totNum = 0;
@@ -73,7 +73,7 @@ void KDTree::report() const {
 
 int KDTree::newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split) {
     ++_tot;
-    _nodes[_tot] = BVHSAHNode(box, objs, split);
+    _nodes[_tot] = KDTreeNode(box, objs, split);
     return _tot;
 }
 

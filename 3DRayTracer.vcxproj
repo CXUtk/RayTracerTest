@@ -90,7 +90,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>MULTI;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>C:\Users\DXT\source\repos\3DRayTracer\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -99,6 +99,8 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackReserveSize>134217728</StackReserveSize>
+      <HeapReserveSize>134217728</HeapReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -107,7 +109,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>MULTI;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>C:\Users\DXT\source\repos\3DRayTracer\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -118,6 +120,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackReserveSize>134217728</StackReserveSize>
+      <HeapReserveSize>134217728</HeapReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -162,7 +166,7 @@
     <ClCompile Include="src\Structure\AccelStructure\BVHSAH.cpp" />
     <ClCompile Include="src\Structure\AccelStructure\KDTree.cpp" />
     <ClCompile Include="src\Structure\BoundingBox.cpp" />
-    <ClCompile Include="src\Structure\AccelStructure\Quick.cpp" />
+    <ClCompile Include="src\Structure\AccelStructure\OCTree.cpp" />
     <ClCompile Include="src\Structure\IntersectionInfo.cpp" />
     <ClCompile Include="src\Structure\Material.cpp" />
     <ClCompile Include="src\Structure\Materials\DiffuseMat.cpp" />
@@ -189,7 +193,7 @@
     <ClInclude Include="src\Structure\AccelStructure\BVHSAH.h" />
     <ClInclude Include="src\Structure\AccelStructure\KDTree.h" />
     <ClInclude Include="src\Structure\BoundingBox.h" />
-    <ClInclude Include="src\Structure\AccelStructure\Quick.h" />
+    <ClInclude Include="src\Structure\AccelStructure\OCTree.h" />
     <ClInclude Include="src\Structure\IntersectionInfo.h" />
     <ClInclude Include="src\Structure\Material.h" />
     <ClInclude Include="src\Structure\Materials\DiffuseMat.h" />

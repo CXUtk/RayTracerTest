@@ -13,6 +13,8 @@ public:
 
     bool rayIntersect(const Ray& ray, float& tMin, float& tMax) const;
 
+    bool intersects(const BoundingBox& box) const;
+
     glm::vec3 getCenter() const { return (_minPos + _maxPos) / 2.f; }
 
     BoundingBox Union(const BoundingBox& box) const {

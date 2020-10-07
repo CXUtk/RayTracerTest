@@ -90,10 +90,10 @@
     <ClCompile Include="src\Structure\AccelStructure\BruteForce.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\Structure\AccelStructure\Quick.cpp">
+    <ClCompile Include="src\Structure\AccelStructure\KDTree.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\Structure\AccelStructure\KDTree.cpp">
+    <ClCompile Include="src\Structure\AccelStructure\OCTree.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -170,10 +170,10 @@
     <ClInclude Include="src\Structure\AccelStructure\BruteForce.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Structure\AccelStructure\Quick.h">
+    <ClInclude Include="src\Structure\AccelStructure\KDTree.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Structure\AccelStructure\KDTree.h">
+    <ClInclude Include="src\Structure\AccelStructure\OCTree.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
