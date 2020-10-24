@@ -17,17 +17,97 @@
 
 #include "OBJ_Loader.hpp"
 
-Scene::Scene() {
+Scene::Scene(const std::string& configFile) {
+    std::ifstream input(configFile, std::ios_base::in);
+    loadCamera(input);
+
+    loadSceneObjects(input);
+
+    //std::shared_ptr<DiffuseMat> defMat = std::make_shared<DiffuseMat>();
+    //defMat->setDiffuseColor(glm::vec3(0.5));
+
+    //std::shared_ptr<DiffuseMat> redMat = std::make_shared<DiffuseMat>();
+    //std::shared_ptr<GlassMat> glassMat = std::make_shared<GlassMat>();
+    //redMat->setDiffuseColor(glm::vec3(0.7, 0.2, 0.2));
+    //std::shared_ptr<MetalMat> metalMat = std::make_shared<MetalMat>(glm::vec3(0.9, 0.9, 0.7), 0.15f);
+    //std::shared_ptr<LightMat> lightMat = std::make_shared<LightMat>(glm::vec3(3));
+
+    //auto sphere = std::make_shared<Sphere>(glm::vec3(3, 10, -3), 1, lightMat);//std::make_shared<Sphere>(glm::vec3(0, 5, 0), 1, lightMat);
+    //auto sphere2 = std::make_shared<Sphere>(glm::vec3(0, 0, -3), 1, redMat);
+    //auto tri1 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(5, -1, 5), glm::vec3(5, -1, -5), defMat);
+    //auto tri2 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(-5, -1, -5), glm::vec3(5, -1, -5), defMat);
+    //_sceneLights.push_back(sphere);
+    //_sceneObjects.push_back(sphere);
+    //_sceneObjects.push_back(sphere2);
+    //_sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(-2, 0, 2), 0.5, glassMat));
+    //_sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(2, 0, 2), 0.5, metalMat));
+    //// _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(0, -0.5, 3), 0.5, glassMat));
+    //_sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(0, -0.5, 3), 0.5, std::make_shared<DiffuseMat>(glm::vec3(0.5, 1, 0.5))));
+    //_sceneObjects.push_back(tri1);
+    //_sceneObjects.push_back(tri2);
+
+
+    printf("%d\n", _sceneObjects.size());
+    _accelTree = AccelStructure::makeAccelStructure("KD", 1048576);
+    _accelTree->build(_sceneObjects);
+    printf("%d\n", _accelTree->numOfNodes());
+    printf("Build Complete\n");
+}
+
+Scene::~Scene() {
+}
+
+float clamp(float v, float minn, float maxx) {
+    return std::min(std::max(v, minn), maxx);
+}
+
+void Scene::loadSceneObjects(std::ifstream& input) {
+    int n;
+    input >> n;
     std::shared_ptr<DiffuseMat> defMat = std::make_shared<DiffuseMat>();
     defMat->setDiffuseColor(glm::vec3(0.5));
-
     std::shared_ptr<DiffuseMat> redMat = std::make_shared<DiffuseMat>();
     std::shared_ptr<GlassMat> glassMat = std::make_shared<GlassMat>();
     redMat->setDiffuseColor(glm::vec3(0.7, 0.2, 0.2));
     std::shared_ptr<MetalMat> metalMat = std::make_shared<MetalMat>(glm::vec3(0.9, 0.9, 0.7), 0.15f);
     std::shared_ptr<LightMat> lightMat = std::make_shared<LightMat>(glm::vec3(3));
 
-    auto sphere = std::make_shared<Sphere>(glm::vec3(0, 10, 0), 1, lightMat);//std::make_shared<Sphere>(glm::vec3(0, 5, 0), 1, lightMat);
+    for (int i = 0; i < n; i++) {
+        std::string filename;
+        input >> filename;
+
+        objl::Loader loader;
+        loader.LoadFile(filename);
+        glm::vec3 trans, scale;
+        input >> scale.x >> scale.y >> scale.z;
+        input >> trans.x >> trans.y >> trans.z;
+
+
+        glm::mat4 transform = glm::identity<glm::mat4>();
+        transform = glm::translate(transform, trans);
+        transform = glm::scale(transform, scale);
+
+
+        for (auto& mesh : loader.LoadedMeshes) {
+            int sz = mesh.Indices.size();
+            for (int i = 0; i < sz; i += 3) {
+                std::vector<glm::vec3> vs;
+                for (int j = 0; j < 3; j++) {
+                    auto& p = mesh.Vertices[mesh.Indices[i + j]].Position;
+                    glm::vec4 x(p.X, p.Y, p.Z, 1);
+                    x = transform * x;
+                    vs.push_back(x);
+                }
+                _sceneObjects.push_back(std::make_shared<Triangle>(vs, defMat));
+            }
+            //_sceneObjects.push_back(std::make_shared<TriangleMesh>(trimesh));
+            //trimesh.clear();
+        }
+
+    }
+
+
+    auto sphere = std::make_shared<Sphere>(glm::vec3(3, 10, -3), 1, lightMat);//std::make_shared<Sphere>(glm::vec3(0, 5, 0), 1, lightMat);
     auto sphere2 = std::make_shared<Sphere>(glm::vec3(0, 0, -3), 1, redMat);
     auto tri1 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(5, -1, 5), glm::vec3(5, -1, -5), defMat);
     auto tri2 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(-5, -1, -5), glm::vec3(5, -1, -5), defMat);
@@ -41,55 +121,61 @@ Scene::Scene() {
     _sceneObjects.push_back(tri1);
     _sceneObjects.push_back(tri2);
 
-    objl::Loader loader;
-    loader.LoadFile("models/teapot.obj");
-    std::map<std::string, std::shared_ptr<Material>> matTable;
-    for (auto& mat : loader.LoadedMaterials) {
-        std::shared_ptr<Material> matR = std::make_shared<DiffuseMat>(glm::vec3(mat.Kd.X, mat.Kd.Y, mat.Kd.Z));
-        matTable[mat.name] = matR;
-    }
+    //objl::Loader loader;
+    //loader.LoadFile("models/spot.obj");
+    //std::map<std::string, std::shared_ptr<Material>> matTable;
+    //for (auto& mat : loader.LoadedMaterials) {
+    //    std::shared_ptr<Material> matR = std::make_shared<DiffuseMat>(glm::vec3(mat.Kd.X, mat.Kd.Y, mat.Kd.Z));
+    //    matTable[mat.name] = matR;
+    //}
 
-    glm::mat4 transform;
-    transform = glm::scale(transform, glm::vec3(1.5, 1.5, 1.5));
-    transform = glm::translate(glm::vec3(0, -0.5, 0));
-    std::vector<std::shared_ptr<Triangle>> trimesh;
-    for (auto& mesh : loader.LoadedMeshes) {
-        int sz = mesh.Indices.size();
-        std::shared_ptr<Material> mat = defMat;
+    //glm::mat4 transform = glm::identity<glm::mat4>();
+    ////transform = glm::translate(transform, glm::vec3(0, -1, 0));
+    ////transform = glm::scale(transform, glm::vec3(15, 15, 15));
+    //transform = glm::translate(transform, glm::vec3(0, 0, 0));
+    //transform = glm::scale(transform, glm::vec3(1, 1, 1));
+    //std::vector<std::shared_ptr<Triangle>> trimesh;
+    //for (auto& mesh : loader.LoadedMeshes) {
+    //    int sz = mesh.Indices.size();
+    //    std::shared_ptr<Material> mat = defMat;
 
-        if (mesh.MeshMaterial.has_value() && matTable.find(mesh.MeshMaterial->name) != matTable.end()) {
-            mat = matTable[mesh.MeshMaterial->name];
-            if (mesh.MeshMaterial->name == "glass") {
-                mat = glassMat;
-            }
-        }
-        for (int i = 0; i < sz; i += 3) {
-            std::vector<glm::vec3> vs;
-            for (int j = 0; j < 3; j++) {
-                auto& p = mesh.Vertices[mesh.Indices[i + j]].Position;
-                glm::vec4 x(p.X, p.Y, p.Z, 1);
-                x = transform * x;
-                vs.push_back(x);
-            }
-            _sceneObjects.push_back(std::make_shared<Triangle>(vs, mat));
-        }
-        //_sceneObjects.push_back(std::make_shared<TriangleMesh>(trimesh));
-        //trimesh.clear();
-    }
-    printf("%d\n", _sceneObjects.size());
-    _accelTree = AccelStructure::makeAccelStructure("Oct", 1048576);
-    _accelTree->build(_sceneObjects);
-    printf("%d\n", _accelTree->numOfNodes());
-    printf("Build Complete\n");
+    //    if (mesh.MeshMaterial.has_value() && matTable.find(mesh.MeshMaterial->name) != matTable.end()) {
+    //        mat = matTable[mesh.MeshMaterial->name];
+    //        if (mesh.MeshMaterial->name == "glass") {
+    //            mat = glassMat;
+    //        }
+    //    }
+    //    for (int i = 0; i < sz; i += 3) {
+    //        std::vector<glm::vec3> vs;
+    //        for (int j = 0; j < 3; j++) {
+    //            auto& p = mesh.Vertices[mesh.Indices[i + j]].Position;
+    //            glm::vec4 x(p.X, p.Y, p.Z, 1);
+    //            x = transform * x;
+    //            vs.push_back(x);
+    //        }
+    //        _sceneObjects.push_back(std::make_shared<Triangle>(vs, mat));
+    //    }
+    //    //_sceneObjects.push_back(std::make_shared<TriangleMesh>(trimesh));
+    //    //trimesh.clear();
+    //        }
 }
 
-Scene::~Scene() {
+void Scene::loadCamera(std::ifstream& stream) {
+    glm::vec3 campos, lookat, up;
+    stream >> campos.x >> campos.y >> campos.z;
+    stream >> lookat.x >> lookat.y >> lookat.z;
+    stream >> up.x >> up.y >> up.z;
+
+    float fov, aspect;
+    stream >> fov >> aspect;
+
+    _camera = std::make_unique<Camera>(campos, lookat, up, fov, aspect, 1);
 }
 
-float clamp(float v, float minn, float maxx) {
-    return std::min(std::max(v, minn), maxx);
-}
 
+Ray Scene::getRay(float x, float y) {
+    return _camera->getRay(x, y);
+}
 
 bool Scene::castRay(const Ray& ray, IntersectionInfo& info) {
 #ifdef BRUTE
@@ -110,6 +196,10 @@ bool Scene::castRay(const Ray& ray, IntersectionInfo& info) {
     return _accelTree->rayIntersect(ray, info);
 #endif
 
+}
+
+int Scene::countRay(const Ray& ray, IntersectionInfo& info) {
+    return _accelTree->rayIntersectCount(ray, info);
 }
 
 void Scene::showDebugInfo(FrameBuffer& frame) {

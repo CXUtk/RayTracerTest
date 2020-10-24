@@ -6,31 +6,35 @@
 #define chi(p, d) _nodes[p].ch[d]
 #define chd(p, d) _nodes[_nodes[p].ch[d]]
 
-Octree::Octree(int maxsize) {
+Octree::Octree(int maxsize) :AccelStructure() {
     _root = 0, _tot = 0;
     _objects.clear();
-    _totNum = 0;
-    _maxNum = 0;
-    _callCnt = 0;
 }
 
 Octree::~Octree() {
 }
 
 void Octree::build(const std::vector<std::shared_ptr<Object>>& objects) {
+    BoundingBox box;
+    for (const auto& ptr : objects) {
+        box = box.Union(ptr->getBoundingBox());
+    }
     for (const auto& ptr : objects) {
         _objects.push_back(ptr.get());
-        _insert(_root, ptr, 0, BoundingBox(glm::vec3(-10), glm::vec3(10)));
+        _insert(_root, ptr, 0, box);
     }
 }
 
 static int numStep;
+static int totIncs;
 bool Octree::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     numStep = 0;
+    totIncs = 0;
     bool ret = false;
     ret |= ray_test(_root, ray, info, 0, 0, info.getDistance());
-    _totNum += numStep;
-    _maxNum = std::max(_maxNum, (long long)numStep);
+    _maxWalks = std::max(_maxWalks, (long long)numStep);
+    _totWalks += numStep;
+    _maxNums = std::max(_maxNums, (long long)totIncs);
     _callCnt++;
     return ret;
 }
@@ -39,11 +43,8 @@ void Octree::walkRectangles(FrameBuffer& frame) const {
     // _dfsDrawRect(_root, frame);
 }
 
-void Octree::report() const {
-    printf("Total Step: %lld\n", _totNum);
-    printf("Total Called: %lld\n", _callCnt);
-    printf("Average Step: %lf\n", _totNum / (double)_callCnt);
-    printf("Max Step: %lld\n", _maxNum);
+int Octree::rayIntersectCount(const Ray& ray, IntersectionInfo& info) const {
+    return rayIntersect(ray, info) ? numStep : -1;
 }
 
 void Octree::insert(std::shared_ptr<Object> object) {
@@ -101,6 +102,8 @@ bool Octree::ray_test(int p, const Ray& ray, IntersectionInfo& info, int d, floa
     if (!self.box.rayIntersect(ray, tMin, tMax)) return false;
     bool hit = false;
     if (d == MAX_DEPTH) {
+        totIncs += self.objs.size();
+        _totNums += self.objs.size();
         for (auto o : self.objs) {
             IntersectionInfo tmp;
             if (o->rayIntersect(ray, tmp)) {

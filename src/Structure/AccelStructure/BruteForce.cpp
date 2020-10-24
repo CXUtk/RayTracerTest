@@ -20,5 +20,9 @@ bool BruteForce::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     return hit;
 }
 
+int BruteForce::rayIntersectCount(const Ray& ray, IntersectionInfo& info) const {
+    return 0;
+}
+
 void BruteForce::report() const {
 }

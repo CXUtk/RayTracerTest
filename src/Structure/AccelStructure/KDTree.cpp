@@ -6,169 +6,205 @@
 #define chi(p, d) _nodes[p].ch[d]
 #define chd(p, d) _nodes[_nodes[p].ch[d]]
 
-KDTree::KDTree() {
+struct Edge {
+    bool end;
+    float pos;
+    Edge(bool end, float pos) : end(end), pos(pos) {}
+    bool operator<(const Edge& edge) const {
+        if (pos == edge.pos)return end < edge.end;
+        return pos < edge.pos;
+    }
+};
+
+KDTree::KDTree() :AccelStructure() {
     _nodes[0] = KDTreeNode();
     _root = 0, _tot = 0;
     _objects.clear();
-    _totNum = 0;
-    _maxNum = 0;
     _callCnt = 0;
 }
 
 KDTree::~KDTree() {
 }
-
-void KDTree::build(const std::vector<std::shared_ptr<Object>>& objects) {
-    for (auto ptr : objects)
-        _objects.push_back(ptr.get());
-    int sz = _objects.size();
-    _build(_root, 0, sz - 1);
-}
-
 static int numStep;
+static int totIncs;
+void KDTree::build(const std::vector<std::shared_ptr<Object>>& objects) {
+    masterBox = BoundingBox();
+    for (auto ptr : objects) {
+        _objects.push_back(ptr.get());
+        masterBox = masterBox.Union(ptr->getBoundingBox());
+    }
+    int sz = _objects.size();
+    _build(_root, masterBox, _objects);
+}
 
 bool KDTree::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     numStep = 0;
-    bool hit = false;
-    constexpr float MAX = std::numeric_limits<float>::infinity();
-    int dirIsNeg[3] = { ray.getDir()[0] < 0, ray.getDir()[1] < 0, ray.getDir()[2] < 0 };
-
-    // Stack related
-    int top = 0, p = _root;
-    int st[64];
-    while (true) {
-        numStep++;
-        float tmin = 0, tmax = MAX;
-        if (self.box.rayIntersect(ray, tmin, tmax) && tmin < info.getDistance()) {
-            if (!self.objs.empty()) {
-                for (auto a : self.objs) {
-                    if (a->rayIntersect(ray, info)) {
-                        hit = true;
-                    }
-                }
-            }
-            else {
-                int d = 0;
-                if (dirIsNeg[self.splitAxis]) d = 1;
-                st[top++] = chi(p, !d);
-                p = chi(p, d);
-                continue;
-            }
-        }
-        _maxNum = std::max(_maxNum, (long long)top);
-        if (!top) break;
-        p = st[--top];
-    }
-    _totNum += numStep;
+    totIncs = 0;
+    bool ret = false;
+    float tMin = 0, tMax = info.getDistance();
+    if (!masterBox.rayIntersect(ray, tMin, tMax))return false;
+    ret |= ray_test(_root, ray, info, masterBox, tMin, tMax);
+    _maxWalks = std::max(_maxWalks, (long long)numStep);
+    _totWalks += numStep;
+    _maxNums = std::max(_maxNums, (long long)totIncs);
     _callCnt++;
-    return hit;
+    return ret;
 }
-void KDTree::report() const {
-    printf("Total Step: %lld\n", _totNum);
-    printf("Total Called: %lld\n", _callCnt);
-    printf("Average Step: %lf\n", _totNum / (double)_callCnt);
-    printf("Max Step: %lld\n", _maxNum);
+
+int KDTree::rayIntersectCount(const Ray& ray, IntersectionInfo& info) const {
+    return rayIntersect(ray, info) ? numStep : -1;
 }
 
 
-int KDTree::newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split) {
+
+int KDTree::newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split, float splitPos) {
     ++_tot;
-    _nodes[_tot] = KDTreeNode(box, objs, split);
+    _nodes[_tot] = KDTreeNode(objs, split, splitPos);
     return _tot;
 }
 
 void KDTree::push_up(int p) {
-    if (chi(p, 0))
-        self.box = self.box.Union(chd(p, 0).box);
-    if (chi(p, 1))
-        self.box = self.box.Union(chd(p, 1).box);
 }
 
-void KDTree::_build(int& p, int l, int r) {
-    BoundingBox box;
-    std::vector<Object*> objs;
-    if (l > r - 5) {
-        for (int i = l; i <= r; i++) {
-            box = box.Union(_objects[i]->getBoundingBox());
-            objs.push_back(_objects[i]);
-        }
-        p = newNode(objs, box, 0);
+void KDTree::_build(int& p, const BoundingBox& outerBox, std::vector<Object*>& objs) {
+    if (objs.size() < 8) {
+        p = newNode(objs, outerBox, 0, 0);
         return;
     }
-    BoundingBox centerBox;
-    for (int i = l; i <= r; i++)
-        centerBox = centerBox.Union(_objects[i]->getBoundingBox().getCenter());
-    int split = centerBox.MaxExtent();
-    if (centerBox.getMaxPos()[split] == centerBox.getMinPos()[split]) {
-        for (int i = l; i <= r; i++) {
-            box = box.Union(_objects[i]->getBoundingBox());
-            objs.push_back(_objects[i]);
-        }
-        p = newNode(objs, box, 0);
-        return;
-    }
-    int mid = (l + r) / 2;
-    auto cmp = [=](Object* A, Object* B) {
-        return A->getBoundingBox().getCenter()[split] < B->getBoundingBox().getCenter()[split];
-    };
+    int split = 0;
+    float splitPos = 0;
+    std::vector<Object*> empty;
     if constexpr (SPLITMETHOD == EQUAL) {
-        std::nth_element(_objects.begin() + l, _objects.begin() + mid, _objects.begin() + r + 1, cmp);
+        BoundingBox centerBox;
+        for (auto obj : objs)
+            centerBox = centerBox.Union(obj->getBoundingBox());
+        split = centerBox.MaxExtent();
+        if (centerBox.getMaxPos()[split] == centerBox.getMinPos()[split]) {
+            p = newNode(objs, outerBox, 0, 0);
+            return;
+        }
+        std::vector<std::pair<float, float>> points;
+        for (auto obj : objs) {
+            points.push_back({ obj->getBoundingBox().getMinPos()[split], obj->getBoundingBox().getMaxPos()[split] });
+        }
+
+        auto cmp = [=](const std::pair<float, float>& A, const std::pair<float, float>& B) {
+            if (A.second == B.second)
+                return A.first < B.first;
+            return A.second < B.second;
+        };
+        std::sort(points.begin(), points.end(), cmp);
+        splitPos = (centerBox.getMaxPos() + centerBox.getMinPos())[split] / 2;
     }
     else {
-        constexpr float tTrav = 0.125;
-        sort(_objects.begin() + l, _objects.begin() + r + 1, cmp);
-        BoundingBox* suf = new BoundingBox[r - l + 2];
-        suf[r - l + 1] = BoundingBox();
-        float cost = std::numeric_limits<float>::infinity();
-        int mincost = -1;
-        for (int i = r - l; i >= 0; i--) {
-            suf[i] = suf[i + 1].Union(_objects[i + l]->getBoundingBox());
-        }
-        BoundingBox curbox = BoundingBox();
-        for (int i = 0; i < r - l + 1; i++) {
-            curbox = curbox.Union(_objects[i + l]->getBoundingBox());
-            float lArea = curbox.SurfaceArea();
-            float rArea = suf[i].SurfaceArea();
-            float c = tTrav + ((i + 1) * lArea + (r - l - i) * rArea) / centerBox.SurfaceArea();
-            if (c < cost) {
-                cost = c;
-                mincost = i;
+        float smallestCost = std::numeric_limits<float>::infinity();
+        float totalSA = outerBox.SurfaceArea();
+        glm::vec3 diff = outerBox.getMaxPos() - outerBox.getMinPos();
+        for (int d = 0; d < 3; d++) {
+            std::vector<Edge> edges;
+            for (auto obj : objs) {
+                edges.push_back(Edge(false, obj->getBoundingBox().getMinPos()[d]));
+                edges.push_back(Edge(true, obj->getBoundingBox().getMaxPos()[d]));
+            }
+            int nBelow = 0, nAbove = objs.size();
+            float L = outerBox.getMinPos()[d], R = outerBox.getMaxPos()[d];
+            sort(edges.begin(), edges.end());
+            for (auto& e : edges) {
+                if (e.end) --nAbove;
+                if (e.pos > L && R) {
+                    float LA = diff[(d + 1) % 3];
+                    float LB = diff[(d + 2) % 3];
+                    float belowSA = 2 * (LA * LB + (e.pos - L) * (LA + LB));
+                    float aboveSA = 2 * (LA * LB + (R - e.pos) * (LA + LB));
+
+                    float pb = belowSA / totalSA, pa = aboveSA / totalSA;
+                    float cost = 0.125 + (pb * nBelow + pa * nAbove);
+                    if (cost < smallestCost) {
+                        smallestCost = cost;
+                        split = d;
+                        splitPos = e.pos;
+                    }
+                }
+                if (!e.end) ++nBelow;
             }
         }
-        delete[] suf;
-        mid = l + mincost;
-        if (mincost > r - l + 1) {
-            for (int i = l; i <= r; i++) {
-                box = box.Union(_objects[i]->getBoundingBox());
-                objs.push_back(_objects[i]);
-            }
-            p = newNode(objs, box, 0);
+        if (smallestCost >= objs.size()) {
+            p = newNode(objs, outerBox, 0, 0);
             return;
         }
     }
-    p = newNode(objs, box, split);
-    _build(chi(p, 0), l, mid);
-    _build(chi(p, 1), mid + 1, r);
+    glm::vec3 leftM = outerBox.getMaxPos();
+    leftM[split] = splitPos;
+    glm::vec3 rightM = outerBox.getMinPos();
+    rightM[split] = splitPos;
+    BoundingBox boxleft(outerBox.getMinPos(), leftM);
+    BoundingBox boxright(rightM, outerBox.getMaxPos());
+
+    std::vector<Object*> leftTri, rightTri;
+    for (auto obj : objs) {
+        if (obj->getBoundingBox().getMinPos()[split] < splitPos) {
+            leftTri.push_back(obj);
+        }
+        if (obj->getBoundingBox().getMaxPos()[split] > splitPos) {
+            rightTri.push_back(obj);
+        }
+    }
+    if (leftTri.size() == objs.size() || rightTri.size() == objs.size()) {
+        p = newNode(objs, outerBox, 0, 0);
+        return;
+    }
+    p = newNode(empty, outerBox, split, splitPos);
+    _build(chi(p, 0), boxleft, leftTri);
+    _build(chi(p, 1), boxright, rightTri);
     push_up(p);
 }
 
-bool KDTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, float tMin, float tMax) const {
+bool KDTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, const BoundingBox& outerBox, float tMin, float tMax) const {
     numStep++;
-    if (!self.box.rayIntersect(ray, tMin, tMax)) return false;
+    if (!p || tMin > tMax) return false;
+    if (!outerBox.rayIntersect(ray, tMin, tMax)) return false;
     if (tMin >= info.getDistance()) return false;
     bool hit = false;
     if (!self.objs.empty()) {
-        IntersectionInfo tmp;
-        for (auto a : self.objs) {
-            if (a->rayIntersect(ray, info)) {
+        totIncs += self.objs.size();
+        _totNums += self.objs.size();
+        for (auto& obj : self.objs) {
+            IntersectionInfo tmp;
+            if (obj->rayIntersect(ray, tmp)) {
+                if (tmp.getDistance() < info.getDistance()) info = tmp;
                 hit = true;
             }
         }
+        return hit;
     }
+    int split = self.splitAxis;
+    float splitPos = self.splitPos;
+
+    glm::vec3 leftM = outerBox.getMaxPos();
+    leftM[split] = splitPos;
+    glm::vec3 rightM = outerBox.getMinPos();
+    rightM[split] = splitPos;
+
+    BoundingBox box[2];
+    box[0] = BoundingBox(outerBox.getMinPos(), leftM);
+    box[1] = BoundingBox(rightM, outerBox.getMaxPos());
+    float tSplit = (splitPos - ray.getStart()[split]) / ray.getDir()[split];
+
+
+    auto invD = 1.0f / ray.getDir()[split];
+    auto t0 = (outerBox.getMinPos()[split] - ray.getStart()[split]) * invD;
+    auto t1 = (outerBox.getMaxPos()[split] - ray.getStart()[split]) * invD;
+    if (invD < 0) std::swap(t0, t1);
+    tMin = std::max(tMin, t0);
+    tMax = std::min(tMax, t1);
+
     int d = ray.getDir()[self.splitAxis] < 0 ? 1 : 0;
-    if (chi(p, d))
-        hit |= ray_test(chi(p, d), ray, info, tMin, info.getDistance());
-    if (chi(p, !d))
-        hit |= ray_test(chi(p, !d), ray, info, tMin, info.getDistance());
+
+    if (tSplit >= tMin) {
+        hit |= ray_test(chi(p, d), ray, info, box[d], tMin, tSplit);
+    }
+    if (tSplit <= tMax) {
+        hit |= ray_test(chi(p, !d), ray, info, box[!d], tSplit, tMax);
+    }
     return hit;
 }

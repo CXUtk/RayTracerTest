@@ -472,9 +472,9 @@ namespace objl {
                     Vector3 vpos;
                     algorithm::split(algorithm::tail(curline), spos, " ");
 
-                    vpos.X = std::stof(spos[0]);
-                    vpos.Y = std::stof(spos[1]);
-                    vpos.Z = std::stof(spos[2]);
+                    vpos.X = std::stod(spos[0]);
+                    vpos.Y = std::stod(spos[1]);
+                    vpos.Z = std::stod(spos[2]);
 
                     Positions.push_back(vpos);
                 }

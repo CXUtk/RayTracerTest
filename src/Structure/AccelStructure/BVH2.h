@@ -6,41 +6,45 @@
 #include <vector>
 
 
-enum SplitMethod {
-    SAH,
-    EQUAL,
-};
-struct BVHSAHNode {
+
+struct BVH2Node {
+
     BoundingBox box;
-    std::vector<Object*> objs;
+    Object* objs;
     int ch[2], splitAxis;
 
-    BVHSAHNode() : box(), splitAxis(0) {
+    BVH2Node() : box(), splitAxis(0) {
         ch[0] = ch[1] = 0;
     }
 
-    BVHSAHNode(const BoundingBox& box, const std::vector<Object*>& objs, int split) :box(box), objs(objs), splitAxis(split) {
+    BVH2Node(const BoundingBox& box, Object* objs, int split) :box(box), objs(objs), splitAxis(split) {
         ch[0] = ch[1] = 0;
     }
 };
-class BVHSAH : public AccelStructure {
+class BVH2 : public AccelStructure {
 public:
-    BVHSAH();
-    ~BVHSAH();
+
+    BVH2();
+    ~BVH2();
     void build(const std::vector<std::shared_ptr<Object>>& objects) override;
     bool rayIntersect(const Ray& ray, IntersectionInfo& info) const override;
-    int rayIntersectCount(const Ray& ray, IntersectionInfo& info) const override;
     int numOfNodes() const override { return _tot; }
+    int rayIntersectCount(const Ray& ray, IntersectionInfo& info) const override;
 
 private:
     int _tot, _root;
-    BVHSAHNode _nodes[1048576];
+    BVH2Node _nodes[1048576];
     std::vector<Object*> _objects;
 
-    int newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split);
+
+    int newNode(Object* objs, const BoundingBox& box, int split);
     void push_up(int p);
     void _build(int& p, int l, int r);
     bool ray_test(int p, const Ray& ray, IntersectionInfo& info, float tMin, float tMax) const;
 
+    enum SplitMethod {
+        SAH,
+        EQUAL,
+    };
     static constexpr int SPLITMETHOD = SplitMethod::EQUAL;
 };

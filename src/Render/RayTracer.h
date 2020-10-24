@@ -13,11 +13,15 @@ public:
 
 private:
     glm::vec3 castRay(const Ray& ray, int depth);
+    int countRay(const Ray& ray, int depth);
     glm::vec3 sampleLight(const IntersectionInfo& info);
     void renderPos(glm::ivec2 pos, FrameBuffer& buffer);
+    void countPos(glm::ivec2 pos, FrameBuffer& buffer);
     int _width, _height;
 
-    std::unique_ptr<Camera> _camera;
+    int stats[1024][1024];
+
     std::unique_ptr<Scene> _scene;
+
 
 };

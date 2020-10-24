@@ -6,12 +6,11 @@
 #define chi(p, d) _nodes[p].ch[d]
 #define chd(p, d) _nodes[_nodes[p].ch[d]]
 
-BVHSAH::BVHSAH() {
+BVHSAH::BVHSAH() :AccelStructure() {
     _nodes[0] = BVHSAHNode();
     _root = 0, _tot = 0;
     _objects.clear();
-    _totNum = 0;
-    _maxNum = 0;
+
     _callCnt = 0;
 }
 
@@ -19,7 +18,6 @@ BVHSAH::~BVHSAH() {
 }
 
 void BVHSAH::build(const std::vector<std::shared_ptr<Object>>& objects) {
-
     for (auto ptr : objects)
         _objects.push_back(ptr.get());
     int sz = _objects.size();
@@ -28,9 +26,11 @@ void BVHSAH::build(const std::vector<std::shared_ptr<Object>>& objects) {
 }
 
 static int numStep;
+static int totIncs;
 
 bool BVHSAH::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     numStep = 0;
+    totIncs = 0;
     bool hit = false;
     constexpr float MAX = std::numeric_limits<float>::infinity();
     int dirIsNeg[3] = { ray.getDir()[0] < 0, ray.getDir()[1] < 0, ray.getDir()[2] < 0 };
@@ -43,6 +43,8 @@ bool BVHSAH::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
         float tmin = 0, tmax = MAX;
         if (self.box.rayIntersect(ray, tmin, tmax) && tmin < info.getDistance()) {
             if (!self.objs.empty()) {
+                _totNums += self.objs.size();
+                totIncs += self.objs.size();
                 for (auto a : self.objs) {
                     if (a->rayIntersect(ray, info)) {
                         hit = true;
@@ -57,19 +59,19 @@ bool BVHSAH::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
                 continue;
             }
         }
-        _maxNum = std::max(_maxNum, (long long)top);
+
         if (!top) break;
         p = st[--top];
     }
-    _totNum += numStep;
+    _maxWalks = std::max(_maxWalks, (long long)numStep);
+    _totWalks += numStep;
+    _maxNums = std::max(_maxNums, (long long)totIncs);
     _callCnt++;
     return hit;
 }
-void BVHSAH::report() const {
-    printf("Total Step: %lld\n", _totNum);
-    printf("Total Called: %lld\n", _callCnt);
-    printf("Average Step: %lf\n", _totNum / (double)_callCnt);
-    printf("Max Step: %lld\n", _maxNum);
+
+int BVHSAH::rayIntersectCount(const Ray& ray, IntersectionInfo& info) const {
+    return rayIntersect(ray, info) ? numStep : -1;
 }
 
 

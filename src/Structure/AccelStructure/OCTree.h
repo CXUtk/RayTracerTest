@@ -23,7 +23,8 @@ public:
     void build(const std::vector<std::shared_ptr<Object>>& objects) override;
     bool rayIntersect(const Ray& ray, IntersectionInfo& info) const override;
     void walkRectangles(FrameBuffer& frame) const;
-    void report() const override;
+    int numOfNodes() const override { return _tot; }
+    int rayIntersectCount(const Ray& ray, IntersectionInfo& info) const override;
 
     void insert(std::shared_ptr<Object> object);
 
@@ -38,6 +39,5 @@ private:
     bool ray_test(int p, const Ray& ray, IntersectionInfo& info, int d, float tMin, float tMax)const;
 
     // Statistic Data
-    mutable long long _totNum, _maxNum, _callCnt;
-    static constexpr int MAX_DEPTH = 7;
+    static constexpr int MAX_DEPTH = 8;
 };

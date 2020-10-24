@@ -10,12 +10,10 @@ public:
     BruteForce() = default;
     void build(const std::vector<std::shared_ptr<Object>>& objects) override;
     bool rayIntersect(const Ray& ray, IntersectionInfo& info) const override;
+    int rayIntersectCount(const Ray& ray, IntersectionInfo& info) const override;
     void report() const override;
 
 
 private:
     std::vector<Object*> _objects;
-
-    // Statistic Data
-    mutable long long _totNum, _maxNum, _callCnt;
 };
