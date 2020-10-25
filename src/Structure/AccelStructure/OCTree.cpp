@@ -78,7 +78,11 @@ void Octree::_insert(int& p, std::shared_ptr<Object> object, int d, const Boundi
         self.objs.push_back(object.get());
         return;
     }
-    glm::vec3 halfV = (self.box.getMaxPos() - self.box.getMinPos()) / 2.f;
+    if (d < MAX_DEPTH && !chi(p, 0) && self.objs.size() + 1 <= THRESHOLD) {
+        self.objs.push_back(object.get());
+    }
+    else if (d < MAX_DEPTH)
+        glm::vec3 halfV = (self.box.getMaxPos() - self.box.getMinPos()) / 2.f;
     for (int i = 0; i < 8; i++) {
         auto nxtMin = box.getMinPos();
         auto nxtMax = nxtMin + halfV;

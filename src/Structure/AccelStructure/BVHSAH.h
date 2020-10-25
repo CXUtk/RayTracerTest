@@ -3,6 +3,7 @@
 #include "AccelStructure.h"
 #include "Structure/Object.h"
 #include "Render/FrameBuffer.h"
+#include "Structure/Utils.h"
 #include <vector>
 
 
@@ -31,10 +32,11 @@ public:
     bool rayIntersect(const Ray& ray, IntersectionInfo& info) const override;
     int rayIntersectCount(const Ray& ray, IntersectionInfo& info) const override;
     int numOfNodes() const override { return _tot; }
+    void report() const override;
 
 private:
     int _tot, _root;
-    BVHSAHNode _nodes[1048576];
+    BVHSAHNode _nodes[MAX_NODES];
     std::vector<Object*> _objects;
 
     int newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split);
@@ -42,5 +44,5 @@ private:
     void _build(int& p, int l, int r);
     bool ray_test(int p, const Ray& ray, IntersectionInfo& info, float tMin, float tMax) const;
 
-    static constexpr int SPLITMETHOD = SplitMethod::EQUAL;
+    static constexpr int SPLITMETHOD = SplitMethod::SAH;
 };

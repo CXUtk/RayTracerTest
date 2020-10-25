@@ -7,6 +7,7 @@
 #include "Render/FrameBuffer.h"
 
 constexpr float EPS = 1e-9;
+constexpr int MAX_NODES = 1 << 22;
 
 int dcmp(float v);
 

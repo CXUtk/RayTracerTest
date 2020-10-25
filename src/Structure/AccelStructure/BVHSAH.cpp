@@ -6,6 +6,10 @@
 #define chi(p, d) _nodes[p].ch[d]
 #define chd(p, d) _nodes[_nodes[p].ch[d]]
 
+static int numStep;
+static int totIncs;
+static int totMemory;
+
 BVHSAH::BVHSAH() :AccelStructure() {
     _nodes[0] = BVHSAHNode();
     _root = 0, _tot = 0;
@@ -22,11 +26,11 @@ void BVHSAH::build(const std::vector<std::shared_ptr<Object>>& objects) {
         _objects.push_back(ptr.get());
     int sz = _objects.size();
     printf("%d\n", sz);
+    totMemory = 0;
     _build(_root, 0, sz - 1);
 }
 
-static int numStep;
-static int totIncs;
+
 
 bool BVHSAH::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     numStep = 0;
@@ -74,6 +78,12 @@ int BVHSAH::rayIntersectCount(const Ray& ray, IntersectionInfo& info) const {
     return rayIntersect(ray, info) ? numStep : -1;
 }
 
+void BVHSAH::report() const {
+    AccelStructure::report();
+    printf("Total # of nodes: %d\n", _tot);
+    printf("Total # of nodes + inc: %d\n", totMemory);
+}
+
 
 int BVHSAH::newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split) {
     ++_tot;
@@ -91,7 +101,8 @@ void BVHSAH::push_up(int p) {
 void BVHSAH::_build(int& p, int l, int r) {
     BoundingBox box;
     std::vector<Object*> objs;
-    if (l > r - 6) {
+    if (l > r - 8) {
+        totMemory += r - l + 1;
         for (int i = l; i <= r; i++) {
             box = box.Union(_objects[i]->getBoundingBox());
             objs.push_back(_objects[i]);
@@ -99,11 +110,13 @@ void BVHSAH::_build(int& p, int l, int r) {
         p = newNode(objs, box, 0);
         return;
     }
+
     BoundingBox centerBox;
     for (int i = l; i <= r; i++)
         centerBox = centerBox.Union(_objects[i]->getBoundingBox().getCenter());
     int split = centerBox.MaxExtent();
     if (centerBox.getMaxPos()[split] == centerBox.getMinPos()[split]) {
+        totMemory += r - l + 1;
         for (int i = l; i <= r; i++) {
             box = box.Union(_objects[i]->getBoundingBox());
             objs.push_back(_objects[i]);
@@ -121,7 +134,8 @@ void BVHSAH::_build(int& p, int l, int r) {
     else {
         constexpr float tTrav = 0.125;
         sort(_objects.begin() + l, _objects.begin() + r + 1, cmp);
-        BoundingBox* suf = new BoundingBox[r - l + 2];
+
+        std::vector<BoundingBox> suf(r - l + 2);
         suf[r - l + 1] = BoundingBox();
         float cost = std::numeric_limits<float>::infinity();
         int mincost = -1;
@@ -133,15 +147,15 @@ void BVHSAH::_build(int& p, int l, int r) {
             curbox = curbox.Union(_objects[i + l]->getBoundingBox());
             float lArea = curbox.SurfaceArea();
             float rArea = suf[i].SurfaceArea();
-            float c = tTrav + ((i + 1) * lArea + (r - l - i) * rArea) / centerBox.SurfaceArea();
+            float c = tTrav + ((i + 1) * lArea + (r - l - i) * rArea) / suf[0].SurfaceArea();
             if (c < cost) {
                 cost = c;
                 mincost = i;
             }
         }
-        delete[] suf;
         mid = l + mincost;
-        if (mincost > r - l + 1) {
+        if (mincost == -1 || mincost > r - l + 1) {
+            totMemory += r - l + 1;
             for (int i = l; i <= r; i++) {
                 box = box.Union(_objects[i]->getBoundingBox());
                 objs.push_back(_objects[i]);
@@ -151,6 +165,7 @@ void BVHSAH::_build(int& p, int l, int r) {
         }
     }
     p = newNode(objs, box, split);
+    totMemory++;
     _build(chi(p, 0), l, mid);
     _build(chi(p, 1), mid + 1, r);
     push_up(p);

@@ -3,6 +3,7 @@
 #include "AccelStructure.h"
 #include "Structure/Object.h"
 #include "Render/FrameBuffer.h"
+#include "Structure/Utils.h"
 #include <vector>
 
 
@@ -35,7 +36,7 @@ private:
         EQUAL,
     };
     int _tot, _root;
-    KDTreeNode _nodes[1048576];
+    KDTreeNode _nodes[MAX_NODES];
     std::vector<Object*> _objects;
     BoundingBox masterBox;
 

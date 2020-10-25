@@ -3,6 +3,7 @@
 #include "AccelStructure.h"
 #include "Structure/Object.h"
 #include "Render/FrameBuffer.h"
+#include "Structure/Utils.h"
 #include <vector>
 
 
@@ -33,7 +34,7 @@ public:
 
 private:
     int _tot, _root;
-    BVH2Node _nodes[1048576];
+    BVH2Node _nodes[MAX_NODES];
     std::vector<Object*> _objects;
 
 

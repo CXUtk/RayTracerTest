@@ -3,6 +3,7 @@
 #include "AccelStructure.h"
 #include "Structure/Object.h"
 #include "Render/FrameBuffer.h"
+#include "Structure/Utils.h"
 #include <vector>
 
 struct OctNode {
@@ -30,7 +31,7 @@ public:
 
 private:
     int _tot, _root;
-    OctNode _nodes[1048576];
+    OctNode _nodes[MAX_NODES];
     std::vector<Object*> _objects;
 
     int newNode(const BoundingBox& box);
@@ -40,4 +41,5 @@ private:
 
     // Statistic Data
     static constexpr int MAX_DEPTH = 8;
+    static constexpr int THRESHOLD = 8;
 };

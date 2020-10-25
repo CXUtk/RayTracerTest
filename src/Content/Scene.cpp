@@ -48,7 +48,7 @@ Scene::Scene(const std::string& configFile) {
 
 
     printf("%d\n", _sceneObjects.size());
-    _accelTree = AccelStructure::makeAccelStructure("KD", 1048576);
+    _accelTree = AccelStructure::makeAccelStructure("Oct", 1048576);
     _accelTree->build(_sceneObjects);
     printf("%d\n", _accelTree->numOfNodes());
     printf("Build Complete\n");
