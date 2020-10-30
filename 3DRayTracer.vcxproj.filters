@@ -99,6 +99,9 @@
     <ClCompile Include="src\Structure\AccelStructure\BVH2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\ObjLoader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Render\FrameBuffer.h">
@@ -180,6 +183,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\Structure\AccelStructure\BVH2.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ObjLoader.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

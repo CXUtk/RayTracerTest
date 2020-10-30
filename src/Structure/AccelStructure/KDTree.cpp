@@ -67,7 +67,7 @@ void KDTree::push_up(int p) {
 }
 
 void KDTree::_build(int& p, const BoundingBox& outerBox, std::vector<Object*>& objs) {
-    if (objs.size() < 4) {
+    if (objs.size() < 8) {
         p = newNode(objs, outerBox, 0, 0);
         return;
     }

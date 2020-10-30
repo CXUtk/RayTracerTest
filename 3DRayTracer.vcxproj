@@ -158,6 +158,7 @@
     <ClCompile Include="src\Content\Scene.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\ObjLoader.cpp" />
     <ClCompile Include="src\Render\Camera.cpp" />
     <ClCompile Include="src\Render\FrameBuffer.cpp" />
     <ClCompile Include="src\Render\RayTracer.cpp" />
@@ -186,6 +187,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Content\Scene.h" />
+    <ClInclude Include="src\ObjLoader.h" />
     <ClInclude Include="src\OBJ_Loader.hpp" />
     <ClInclude Include="src\Render\Camera.h" />
     <ClInclude Include="src\Render\FrameBuffer.h" />

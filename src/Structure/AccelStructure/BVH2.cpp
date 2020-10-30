@@ -16,7 +16,6 @@ BVH2::~BVH2() {
 }
 
 void BVH2::build(const std::vector<std::shared_ptr<Object>>& objects) {
-
     for (auto ptr : objects)
         _objects.push_back(ptr.get());
     int sz = _objects.size();

@@ -12,7 +12,7 @@
 
 RayTracer::RayTracer(int width, int height) :_width(width), _height(height) {
     memset(stats, 0, sizeof(stats));
-    _scene = std::make_unique<Scene>("scenes/gd24k.sc");
+    _scene = std::make_unique<Scene>("scenes/bmw.sc");
     //_camera = std::make_unique<Camera>(glm::vec3(100, 200, 650), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::half_pi<float>(), 4.0f / 3.0f, 1);
     // _camera = std::make_unique<Camera>(glm::vec3(-6, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::half_pi<float>() / 2.5f, 4.0f / 3.0f, 1);
     // _camera = std::make_unique<Camera>(glm::vec3(-5, 5, 7), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), glm::half_pi<float>() / 2.5f, 4.0f / 3.0f, 1);

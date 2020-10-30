@@ -15,7 +15,7 @@
 #include "Structure/Materials/LightMat.h"
 #include "Structure/SceneObject/TriangleMesh.h"
 
-#include "OBJ_Loader.hpp"
+#include "ObjLoader.h"
 
 Scene::Scene(const std::string& configFile) {
     std::ifstream input(configFile, std::ios_base::in);
@@ -61,6 +61,8 @@ float clamp(float v, float minn, float maxx) {
     return std::min(std::max(v, minn), maxx);
 }
 
+ObjLoader loader;
+
 void Scene::loadSceneObjects(std::ifstream& input) {
     int n;
     input >> n;
@@ -76,8 +78,8 @@ void Scene::loadSceneObjects(std::ifstream& input) {
         std::string filename;
         input >> filename;
 
-        objl::Loader loader;
-        loader.LoadFile(filename);
+
+        loader.load(filename);
         glm::vec3 trans, scale;
         input >> scale.x >> scale.y >> scale.z;
         input >> trans.x >> trans.y >> trans.z;
@@ -87,22 +89,28 @@ void Scene::loadSceneObjects(std::ifstream& input) {
         transform = glm::translate(transform, trans);
         transform = glm::scale(transform, scale);
 
-
-        for (auto& mesh : loader.LoadedMeshes) {
-            int sz = mesh.Indices.size();
-            for (int i = 0; i < sz; i += 3) {
-                std::vector<glm::vec3> vs;
-                for (int j = 0; j < 3; j++) {
-                    auto& p = mesh.Vertices[mesh.Indices[i + j]].Position;
-                    glm::vec4 x(p.X, p.Y, p.Z, 1);
-                    x = transform * x;
-                    vs.push_back(x);
-                }
-                _sceneObjects.push_back(std::make_shared<Triangle>(vs, defMat));
+        for (auto& t : loader.Triangles) {
+            std::vector<glm::vec3> vs;
+            for (int j = 0; j < 3; j++) {
+                auto p = loader.Vertices[t.v[j]];
+                glm::vec4 x(p, 1);
+                x = transform * x;
+                vs.push_back(x);
             }
-            //_sceneObjects.push_back(std::make_shared<TriangleMesh>(trimesh));
-            //trimesh.clear();
+            _sceneObjects.push_back(std::make_shared<Triangle>(vs, defMat));
         }
+
+
+
+        //for (auto& mesh : loader.LoadedMeshes) {
+        //    int sz = mesh.Indices.size();
+        //    for (int i = 0; i < sz; i += 3) {
+
+
+        //    }
+        //    //_sceneObjects.push_back(std::make_shared<TriangleMesh>(trimesh));
+        //    //trimesh.clear();
+        //}
 
     }
 
