@@ -48,7 +48,7 @@ Scene::Scene(const std::string& configFile) {
 
 
     printf("%d\n", _sceneObjects.size());
-    _accelTree = AccelStructure::makeAccelStructure("Oct", 1048576);
+    _accelTree = AccelStructure::makeAccelStructure("BVH", 1048576);
     _accelTree->build(_sceneObjects);
     printf("%d\n", _accelTree->numOfNodes());
     printf("Build Complete\n");
@@ -118,7 +118,10 @@ void Scene::loadSceneObjects(std::ifstream& input) {
     auto sphere = std::make_shared<Sphere>(glm::vec3(3, 10, -3), 1, lightMat);//std::make_shared<Sphere>(glm::vec3(0, 5, 0), 1, lightMat);
     auto sphere2 = std::make_shared<Sphere>(glm::vec3(0, 0, -3), 1, redMat);
     auto tri1 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(5, -1, 5), glm::vec3(5, -1, -5), defMat);
+
     auto tri2 = std::make_shared<Triangle>(glm::vec3(-5, -1, 5), glm::vec3(-5, -1, -5), glm::vec3(5, -1, -5), defMat);
+    auto tri3 = std::make_shared<Triangle>(glm::vec3(-5, 3, 5), glm::vec3(5, 3, 5), glm::vec3(5, 3, -5), defMat);
+    auto tri4 = std::make_shared<Triangle>(glm::vec3(-5, 3, 5), glm::vec3(-5, 3, -5), glm::vec3(5, 3, -5), defMat);
     _sceneLights.push_back(sphere);
     _sceneObjects.push_back(sphere);
     _sceneObjects.push_back(sphere2);
@@ -128,6 +131,7 @@ void Scene::loadSceneObjects(std::ifstream& input) {
     _sceneObjects.push_back(std::make_shared<Sphere>(glm::vec3(0, -0.5, 3), 0.5, std::make_shared<DiffuseMat>(glm::vec3(0.5, 1, 0.5))));
     _sceneObjects.push_back(tri1);
     _sceneObjects.push_back(tri2);
+
 
     //objl::Loader loader;
     //loader.LoadFile("models/spot.obj");

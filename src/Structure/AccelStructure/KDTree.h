@@ -45,7 +45,7 @@ private:
     int newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split, float splitPos);
     void push_up(int p);
     void _build(int& p, const BoundingBox& outerBox, std::vector<Object*>& objs);
-    bool ray_test(int p, const Ray& ray, IntersectionInfo& info, const BoundingBox& outerBox, float tMin, float tMax) const;
+    bool ray_test(int p, const Ray& ray, IntersectionInfo& info, float tMin, float tMax) const;
 
     static constexpr int SPLITMETHOD = SplitMethod::SAH;
 };

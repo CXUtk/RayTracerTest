@@ -43,7 +43,7 @@ bool KDTree::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     bool ret = false;
     float tMin = 0, tMax = info.getDistance();
     if (!masterBox.rayIntersect(ray, tMin, tMax))return false;
-    ret |= ray_test(_root, ray, info, masterBox, tMin, tMax);
+    ret |= ray_test(_root, ray, info, tMin, tMax);
     _maxWalks = std::max(_maxWalks, (long long)numStep);
     _totWalks += numStep;
     _maxNums = std::max(_maxNums, (long long)totIncs);
@@ -159,10 +159,10 @@ void KDTree::_build(int& p, const BoundingBox& outerBox, std::vector<Object*>& o
     push_up(p);
 }
 
-bool KDTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, const BoundingBox& outerBox, float tMin, float tMax) const {
+bool KDTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, float tMin, float tMax) const {
     numStep++;
     if (!p || tMin > tMax) return false;
-    if (!outerBox.rayIntersect(ray, tMin, tMax)) return false;
+    //if (!outerBox.rayIntersect(ray, tMin, tMax)) return false;
     if (tMin >= info.getDistance()) return false;
     bool hit = false;
     if (!self.objs.empty()) {
@@ -180,31 +180,15 @@ bool KDTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, const Bound
     int split = self.splitAxis;
     float splitPos = self.splitPos;
 
-    glm::vec3 leftM = outerBox.getMaxPos();
-    leftM[split] = splitPos;
-    glm::vec3 rightM = outerBox.getMinPos();
-    rightM[split] = splitPos;
-
-    BoundingBox box[2];
-    box[0] = BoundingBox(outerBox.getMinPos(), leftM);
-    box[1] = BoundingBox(rightM, outerBox.getMaxPos());
     float tSplit = (splitPos - ray.getStart()[split]) / ray.getDir()[split];
 
-
-    auto invD = 1.0f / ray.getDir()[split];
-    auto t0 = (outerBox.getMinPos()[split] - ray.getStart()[split]) * invD;
-    auto t1 = (outerBox.getMaxPos()[split] - ray.getStart()[split]) * invD;
-    if (invD < 0) std::swap(t0, t1);
-    tMin = std::max(tMin, t0);
-    tMax = std::min(tMax, t1);
-
-    int d = ray.getDir()[self.splitAxis] < 0 ? 1 : 0;
+    int d = ray.getStart()[split] > splitPos;
 
     if (tSplit >= tMin) {
-        hit |= ray_test(chi(p, d), ray, info, box[d], tMin, tSplit);
+        hit |= ray_test(chi(p, d), ray, info, tMin, tSplit);
     }
     if (tSplit <= tMax) {
-        hit |= ray_test(chi(p, !d), ray, info, box[!d], tSplit, tMax);
+        hit |= ray_test(chi(p, !d), ray, info, tSplit, tMax);
     }
     return hit;
 }
