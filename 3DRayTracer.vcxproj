@@ -90,7 +90,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;STATS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>C:\Users\DXT\source\repos\3DRayTracer\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -110,7 +110,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;STATS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>C:\Users\DXT\source\repos\3DRayTracer\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -166,8 +166,8 @@
     <ClCompile Include="src\stbi_image.cpp" />
     <ClCompile Include="src\Structure\AccelStructure\AccelStructure.cpp" />
     <ClCompile Include="src\Structure\AccelStructure\BruteForce.cpp" />
-    <ClCompile Include="src\Structure\AccelStructure\BVH2.cpp" />
     <ClCompile Include="src\Structure\AccelStructure\BVHSAH.cpp" />
+    <ClCompile Include="src\Structure\AccelStructure\HybridTree.cpp" />
     <ClCompile Include="src\Structure\AccelStructure\KDTree.cpp" />
     <ClCompile Include="src\Structure\BoundingBox.cpp" />
     <ClCompile Include="src\Structure\AccelStructure\OCTree.cpp" />
@@ -195,8 +195,8 @@
     <ClInclude Include="src\Render\Renderer.h" />
     <ClInclude Include="src\Structure\AccelStructure\AccelStructure.h" />
     <ClInclude Include="src\Structure\AccelStructure\BruteForce.h" />
-    <ClInclude Include="src\Structure\AccelStructure\BVH2.h" />
     <ClInclude Include="src\Structure\AccelStructure\BVHSAH.h" />
+    <ClInclude Include="src\Structure\AccelStructure\HybridTree.h" />
     <ClInclude Include="src\Structure\AccelStructure\KDTree.h" />
     <ClInclude Include="src\Structure\BoundingBox.h" />
     <ClInclude Include="src\Structure\AccelStructure\OCTree.h" />

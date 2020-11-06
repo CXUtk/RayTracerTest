@@ -6,12 +6,8 @@
 #define chi(p, d) _nodes[p].ch[d]
 #define chd(p, d) _nodes[_nodes[p].ch[d]]
 
-static int numStep;
-static int totIncs;
-static int totMemory;
 
 BVHSAH::BVHSAH() :AccelStructure() {
-    _nodes[0] = BVHSAHNode();
     _root = 0, _tot = 0;
     _objects.clear();
 
@@ -24,16 +20,26 @@ BVHSAH::~BVHSAH() {
 void BVHSAH::build(const std::vector<std::shared_ptr<Object>>& objects) {
     for (auto ptr : objects)
         _objects.push_back(ptr.get());
+    _nodes.reserve(objects.size());
+    _nodes.push_back(BVHSAHNode());
     int sz = _objects.size();
-    totMemory = 0;
+    _build(_root, 0, sz - 1);
+}
+
+void BVHSAH::build(const std::vector<Object*>& objects) {
+    for (auto ptr : objects)
+        _objects.push_back(ptr);
+    _nodes.reserve(objects.size());
+    _nodes.push_back(BVHSAHNode());
+    int sz = _objects.size();
     _build(_root, 0, sz - 1);
 }
 
 
 
 bool BVHSAH::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
-    numStep = 0;
-    totIncs = 0;
+    _numStep = 0;
+    _totIncs = 0;
     bool hit = false;
     constexpr float MAX = std::numeric_limits<float>::infinity();
     int dirIsNeg[3] = { ray.getDir()[0] < 0, ray.getDir()[1] < 0, ray.getDir()[2] < 0 };
@@ -42,12 +48,12 @@ bool BVHSAH::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     int top = 0, p = _root;
     int st[64];
     while (true) {
-        numStep++;
+        _numStep++;
         float tmin = 0, tmax = MAX;
         if (self.box.rayIntersect(ray, tmin, tmax) && tmin < info.getDistance()) {
             if (!self.objs.empty()) {
                 _totNums += self.objs.size();
-                totIncs += self.objs.size();
+                _totIncs += self.objs.size();
                 for (auto a : self.objs) {
                     if (a->rayIntersect(ray, info)) {
                         hit = true;
@@ -66,27 +72,28 @@ bool BVHSAH::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
         if (!top) break;
         p = st[--top];
     }
-    _maxWalks = std::max(_maxWalks, (long long)numStep);
-    _totWalks += numStep;
-    _maxNums = std::max(_maxNums, (long long)totIncs);
+    _maxWalks = std::max(_maxWalks, _numStep);
+    _totWalks += _numStep;
+    _maxNums = std::max(_maxNums, _totIncs);
     _callCnt++;
     return hit;
 }
 
 int BVHSAH::rayIntersectCount(const Ray& ray, IntersectionInfo& info) const {
-    return rayIntersect(ray, info) ? numStep : -1;
+    rayIntersect(ray, info);
+    return _numStep;
 }
 
 void BVHSAH::report() const {
     AccelStructure::report();
     printf("Total # of nodes: %d\n", _tot);
-    printf("Total # of nodes + inc: %d\n", totMemory);
+    printf("Total # of nodes + inc: %d\n", _totMemory);
 }
 
 
 int BVHSAH::newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split) {
     ++_tot;
-    _nodes[_tot] = BVHSAHNode(box, objs, split);
+    _nodes.push_back(BVHSAHNode(box, objs, split));
     return _tot;
 }
 
@@ -101,7 +108,7 @@ void BVHSAH::_build(int& p, int l, int r) {
     BoundingBox box;
     std::vector<Object*> objs;
     if (l > r - 8) {
-        totMemory += r - l + 1;
+        _totMemory += r - l + 1;
         for (int i = l; i <= r; i++) {
             box = box.Union(_objects[i]->getBoundingBox());
             objs.push_back(_objects[i]);
@@ -115,7 +122,7 @@ void BVHSAH::_build(int& p, int l, int r) {
         centerBox = centerBox.Union(_objects[i]->getBoundingBox().getCenter());
     int split = centerBox.MaxExtent();
     if (centerBox.getMaxPos()[split] == centerBox.getMinPos()[split]) {
-        totMemory += r - l + 1;
+        _totMemory += r - l + 1;
         for (int i = l; i <= r; i++) {
             box = box.Union(_objects[i]->getBoundingBox());
             objs.push_back(_objects[i]);
@@ -154,7 +161,7 @@ void BVHSAH::_build(int& p, int l, int r) {
         }
         mid = l + mincost;
         if (mincost == -1 || mincost > r - l + 1) {
-            totMemory += r - l + 1;
+            _totMemory += r - l + 1;
             for (int i = l; i <= r; i++) {
                 box = box.Union(_objects[i]->getBoundingBox());
                 objs.push_back(_objects[i]);
@@ -164,14 +171,14 @@ void BVHSAH::_build(int& p, int l, int r) {
         }
     }
     p = newNode(objs, box, split);
-    totMemory++;
+    _totMemory++;
     _build(chi(p, 0), l, mid);
     _build(chi(p, 1), mid + 1, r);
     push_up(p);
 }
 
 bool BVHSAH::ray_test(int p, const Ray& ray, IntersectionInfo& info, float tMin, float tMax) const {
-    numStep++;
+    _numStep++;
     if (!self.box.rayIntersect(ray, tMin, tMax)) return false;
     if (tMin >= info.getDistance()) return false;
     bool hit = false;

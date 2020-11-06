@@ -96,10 +96,10 @@
     <ClCompile Include="src\Structure\AccelStructure\OCTree.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\Structure\AccelStructure\BVH2.cpp">
+    <ClCompile Include="src\ObjLoader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\ObjLoader.cpp">
+    <ClCompile Include="src\Structure\AccelStructure\HybridTree.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -182,10 +182,10 @@
     <ClInclude Include="src\Structure\AccelStructure\OCTree.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Structure\AccelStructure\BVH2.h">
+    <ClInclude Include="src\ObjLoader.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\ObjLoader.h">
+    <ClInclude Include="src\Structure\AccelStructure\HybridTree.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

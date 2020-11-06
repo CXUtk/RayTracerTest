@@ -1,4 +1,4 @@
-﻿#include "KDTree.h"
+﻿#include "HybridTree.h"
 #include "Structure/Utils.h"
 #include <algorithm>
 
@@ -11,31 +11,33 @@ struct Edge {
     float pos;
     Edge(bool end, float pos) : end(end), pos(pos) {}
     bool operator<(const Edge& edge) const {
-        if (pos == edge.pos)return end > edge.end;
+        if (pos == edge.pos)return end < edge.end;
         return pos < edge.pos;
     }
 };
 
-KDTree::KDTree() :AccelStructure() {
-    _nodes[0] = KDTreeNode();
+HybridTree::HybridTree() :AccelStructure() {
+    _nodes[0] = HybridTreeNode();
     _root = 0, _tot = 0;
+    _totNodes = 0;
     _objects.clear();
+    _callCnt = 0;
 }
 
-KDTree::~KDTree() {
+HybridTree::~HybridTree() {
 }
 
-void KDTree::build(const std::vector<std::shared_ptr<Object>>& objects) {
+void HybridTree::build(const std::vector<std::shared_ptr<Object>>& objects) {
     masterBox = BoundingBox();
     for (auto ptr : objects) {
         _objects.push_back(ptr.get());
         masterBox = masterBox.Union(ptr->getBoundingBox());
     }
     int sz = _objects.size();
-    _build(_root, masterBox, _objects, 0);
+    _build(_root, masterBox, _objects);
 }
 
-bool KDTree::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
+bool HybridTree::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     _numStep = 0;
     _totIncs = 0;
     bool ret = false;
@@ -49,32 +51,36 @@ bool KDTree::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
     return ret;
 }
 
-int KDTree::rayIntersectCount(const Ray& ray, IntersectionInfo& info) const {
+int HybridTree::rayIntersectCount(const Ray& ray, IntersectionInfo& info) const {
     rayIntersect(ray, info);
     return _numStep;
 }
 
-void KDTree::report() const {
+void HybridTree::report() const {
     AccelStructure::report();
-    printf("Total # of nodes: %d\n", _tot);
+    printf("Total # of nodes: %d\n", _totNodes);
     printf("Total # of nodes + inc: %d\n", _totMemory);
 }
 
 
 
-int KDTree::newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split, float splitPos) {
+int HybridTree::newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split, float splitPos) {
     ++_tot;
+    ++_totNodes;
     _totMemory++;
-    _nodes[_tot] = KDTreeNode(objs, split, splitPos);
+    _nodes[_tot] = HybridTreeNode(objs, split, splitPos);
+    if (_nodes[_tot]._bvh) {
+        _totNodes += _nodes[_tot]._bvh->getNodes();
+        _totMemory += _nodes[_tot]._bvh->_totMemory;
+    }
     return _tot;
 }
 
-void KDTree::push_up(int p) {
+void HybridTree::push_up(int p) {
 }
 
-void KDTree::_build(int& p, const BoundingBox& outerBox, std::vector<Object*>& objs, int depth) {
-    if (objs.size() < 8 || depth == MAX_DEPTH) {
-        _totMemory += objs.size();
+void HybridTree::_build(int& p, const BoundingBox& outerBox, std::vector<Object*>& objs) {
+    if (objs.size() < 1024) {
         p = newNode(objs, outerBox, -1, -1);
         return;
     }
@@ -100,9 +106,9 @@ void KDTree::_build(int& p, const BoundingBox& outerBox, std::vector<Object*>& o
                 float LB = diff[(d + 2) % 3];
                 float belowSA = 2 * (LA * LB + (e.pos - L) * (LA + LB));
                 float aboveSA = 2 * (LA * LB + (R - e.pos) * (LA + LB));
-                float eb = (nAbove == 0 || nBelow == 0) ? 0.2 : 0;
+
                 float pb = belowSA / totalSA, pa = aboveSA / totalSA;
-                float cost = 0.05 + (1 - eb) * (pb * nBelow + pa * nAbove);
+                float cost = 0.05 + (pb * nBelow + pa * nAbove);
                 if (cost < smallestCost) {
                     smallestCost = cost;
                     split = d;
@@ -112,17 +118,14 @@ void KDTree::_build(int& p, const BoundingBox& outerBox, std::vector<Object*>& o
             if (!e.end) ++nBelow;
         }
     }
-    if (smallestCost >= objs.size() * 2) {
-        _totMemory += objs.size();
+    if (smallestCost >= objs.size()) {
         p = newNode(objs, outerBox, -1, -1);
         return;
     }
     glm::vec3 leftM = outerBox.getMaxPos();
     leftM[split] = splitPos;
-
     glm::vec3 rightM = outerBox.getMinPos();
     rightM[split] = splitPos;
-
     BoundingBox boxleft(outerBox.getMinPos(), leftM);
     BoundingBox boxright(rightM, outerBox.getMaxPos());
 
@@ -135,35 +138,37 @@ void KDTree::_build(int& p, const BoundingBox& outerBox, std::vector<Object*>& o
             rightTri.push_back(obj);
         }
     }
-
     p = newNode(objs, outerBox, split, splitPos);
-    _build(chi(p, 0), boxleft, leftTri, depth + 1);
-    _build(chi(p, 1), boxright, rightTri, depth + 1);
+    _build(chi(p, 0), boxleft, leftTri);
+    _build(chi(p, 1), boxright, rightTri);
     push_up(p);
 }
 
-bool KDTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, float tMin, float tMax) const {
+bool HybridTree::ray_test(int p, const Ray& ray, IntersectionInfo& info, float tMin, float tMax) const {
     _numStep++;
     if (!p || tMin > tMax) return false;
     //if (!outerBox.rayIntersect(ray, tMin, tMax)) return false;
     if (tMin >= info.getDistance()) return false;
+
     if (self.splitAxis == -1) {
-        bool hit = false;
-        _totNums += self.objs.size();
-        _totIncs += self.objs.size();
-        for (auto obj : self.objs) {
-            IntersectionInfo tmp;
-            if (obj->rayIntersect(ray, tmp)) {
-                if (tmp.getDistance() < info.getDistance()) {
-                    info = tmp;
-                }
-                hit = true;
-            }
-        }
-        return hit;
+
+        //for (auto& obj : self.objs) {
+        //    IntersectionInfo tmp;
+        //    if (obj->rayIntersect(ray, tmp)) {
+        //        if (tmp.getDistance() < info.getDistance()) info = tmp;
+        //        hit = true;
+        //    }
+        //}
+        bool b = self.rayIntersect(ray, info);
+        _totIncs += self._bvh->_totIncs;
+        _totNums += self._bvh->_totIncs;
+        // _totNums += self._bvh->_totNums;
+        _numStep += self._bvh->_numStep;
+        return b;
     }
     int split = self.splitAxis;
     float splitPos = self.splitPos;
+
     float tSplit = (splitPos - ray.getStart()[split]) / ray.getDir()[split];
     bool hit = false;
     int d = ray.getDir()[split] < 0;

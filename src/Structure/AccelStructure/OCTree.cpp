@@ -6,10 +6,6 @@
 #define chi(p, d) _nodes[p].ch[d]
 #define chd(p, d) _nodes[_nodes[p].ch[d]]
 
-static int numStep;
-static int totIncs;
-static int totMemory;
-
 Octree::Octree(int maxsize) :AccelStructure() {
     _root = 0, _tot = 0;
     _objects.clear();
@@ -29,13 +25,13 @@ void Octree::build(const std::vector<std::shared_ptr<Object>>& objects) {
     }
 }
 bool Octree::rayIntersect(const Ray& ray, IntersectionInfo& info) const {
-    numStep = 0;
-    totIncs = 0;
+    _numStep = 0;
+    _totIncs = 0;
     bool ret = false;
     ret |= ray_test(_root, ray, info, 0, 0, info.getDistance());
-    _maxWalks = std::max(_maxWalks, (long long)numStep);
-    _totWalks += numStep;
-    _maxNums = std::max(_maxNums, (long long)totIncs);
+    _maxWalks = std::max(_maxWalks, _numStep);
+    _totWalks += _numStep;
+    _maxNums = std::max(_maxNums, _totIncs);
     _callCnt++;
     return ret;
 }
@@ -47,11 +43,12 @@ void Octree::walkRectangles(FrameBuffer& frame) const {
 void Octree::report() const {
     AccelStructure::report();
     printf("Total # of nodes: %d\n", _tot);
-    printf("Total # of nodes + inc: %d\n", totMemory);
+    printf("Total # of nodes + inc: %d\n", _totMemory);
 }
 
 int Octree::rayIntersectCount(const Ray& ray, IntersectionInfo& info) const {
-    return rayIntersect(ray, info) ? numStep : -1;
+    rayIntersect(ray, info);
+    return _numStep;
 }
 
 void Octree::insert(std::shared_ptr<Object> object) {
@@ -83,14 +80,14 @@ void Octree::_insert(int& p, Object* object, int d, const BoundingBox& box) {
     if (!p) p = newNode(box);
     if (d == MAX_DEPTH) {
         self.objs.push_back(object);
-        totMemory++;
+        _totMemory++;
         return;
     }
     glm::vec3 halfV = (self.box.getMaxPos() - self.box.getMinPos()) / 2.f;
     if constexpr (ALLOC_METHOD == Dynamic) {
         if (d < MAX_DEPTH && isLeaf(p)) {
             self.objs.push_back(object);
-            totMemory++;
+            _totMemory++;
             if (self.objs.size() > THRESHOLD) {
                 for (auto v : self.objs) {
                     for (int i = 0; i < 8; i++) {
@@ -109,7 +106,7 @@ void Octree::_insert(int& p, Object* object, int d, const BoundingBox& box) {
                     }
                 }
                 self.objs.clear();
-                totMemory -= THRESHOLD;
+                _totMemory -= THRESHOLD;
             }
             return;
         }
@@ -134,11 +131,11 @@ void Octree::_insert(int& p, Object* object, int d, const BoundingBox& box) {
 
 
 bool Octree::ray_test(int p, const Ray& ray, IntersectionInfo& info, int d, float tMin, float tMax) const {
-    numStep++;
+    _numStep++;
     if (!self.box.rayIntersect(ray, tMin, tMax)) return false;
     bool hit = false;
     if (isLeaf(p)) {
-        totIncs += self.objs.size();
+        _totIncs += self.objs.size();
         _totNums += self.objs.size();
         for (auto o : self.objs) {
             IntersectionInfo tmp;

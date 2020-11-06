@@ -29,14 +29,16 @@ public:
     BVHSAH();
     ~BVHSAH();
     void build(const std::vector<std::shared_ptr<Object>>& objects) override;
+    void build(const std::vector<Object*>& objects);
     bool rayIntersect(const Ray& ray, IntersectionInfo& info) const override;
     int rayIntersectCount(const Ray& ray, IntersectionInfo& info) const override;
     int numOfNodes() const override { return _tot; }
     void report() const override;
+    int getNodes() const { return _tot; }
 
 private:
     int _tot, _root;
-    BVHSAHNode _nodes[MAX_NODES];
+    std::vector<BVHSAHNode> _nodes;
     std::vector<Object*> _objects;
 
     int newNode(const std::vector<Object*>& objs, const BoundingBox& box, int split);

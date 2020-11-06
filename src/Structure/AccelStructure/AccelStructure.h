@@ -5,7 +5,7 @@
 #include "Structure/Object.h"
 class AccelStructure {
 public:
-    AccelStructure() { _totWalks = _maxWalks = _totNums = _maxNums = _callCnt = 0; }
+    AccelStructure() { _totWalks = _maxWalks = _totNums = _maxNums = _callCnt = _numStep = _totIncs = _totMemory = 0; }
     virtual void build(const std::vector<std::shared_ptr<Object>>& objects) = 0;
     virtual bool rayIntersect(const Ray& ray, IntersectionInfo& info) const = 0;
     virtual int rayIntersectCount(const Ray& ray, IntersectionInfo& info) const = 0;
@@ -20,7 +20,7 @@ public:
     }
     virtual int numOfNodes() const { return 0; }
 
-    mutable long long _totWalks, _maxWalks, _totNums, _maxNums, _callCnt;
+    mutable long long _totWalks, _maxWalks, _totNums, _maxNums, _callCnt, _numStep, _totIncs, _totMemory;
 
     static std::unique_ptr<AccelStructure> makeAccelStructure(const std::string& name, int maxnodes);
 };
